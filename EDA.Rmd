@@ -121,20 +121,6 @@ Rule of thumb, these covariate can all be confounders.
 First, I think it's ok(or not wrong) not to include interaction in our model. 
 But's it's interesting to explore the interaction
 
-## 2.1 continuous-"exper"
-```{r}
-lm(sal94 ~ gender*exper, data = law_df) %>% summary()
-```
-The interaction term is not sig.
-
-## 2.2 categorical
-```{r}
-lm(sal94 ~ gender*dept, data = law_df) %>% summary()
-lm(sal94 ~ gender*clin, data = law_df) %>% summary()
-lm(sal94 ~ gender*cert, data = law_df) %>% summary()
-lm(sal94 ~ gender*rank, data = law_df) %>% summary()
-```
-
 # 3.Multiple linear regression model
 ## 3.1 without any interaction
 ```{r}
@@ -151,13 +137,17 @@ Ah. May be... there is no "obvious" discrimination. (coz these confouders maybe 
 ```{r}
 lower_gender <- lm(sal94 ~ gender, data = law_df) 
 step(full,scope = list(lower = lower_gender))
-model_stepwise <- lm(formula = sal94 ~ gender + dept + clin + cert + exper + rank, data = law_df) %>% summary()
+model_stepwise <- lm(formula = sal94 ~ gender + dept + clin + cert + exper + rank, data = law_df) 
 ```
 
 ## 3.2  with some interaction
 ```{r}
+model_stepwise <- lm(sal94 ~ gender + dept + clin + cert + exper + rank, data = law_df) 
 
-lm(sal94 ~ dept + clin + cert  +  exper + gender*rank, data = law_df) %>% summary()
+inter1 <- lm(sal94 ~ gender + gender*dept + gender*clin + gender*cert  +  gender*exper + gender*exper + gender*rank,data = law_df) 
+
+anova(model_stepwise,inter1)
+
 lm(sal94 ~ gender + dept + clin + cert  + gender*exper + gender*rank, data = law_df) %>% summary()
 ```
 
