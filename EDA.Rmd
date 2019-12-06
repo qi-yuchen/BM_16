@@ -1,0 +1,168 @@
+---
+title: "EDA"
+author: "xj2249"
+date: "2019/12/4"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(DataExplorer)
+library(broom)
+library(arsenal)
+```
+
+# clean data
+```{r}
+law_df <- 
+    read_csv("Lawsuit.csv") %>% 
+    janitor::clean_names() %>% 
+    select(-id) %>% 
+    mutate(gender = factor(gender,labels = c("Female","Male")),
+           gender = relevel(gender, ref = "Male"),
+           dept = factor(dept, labels = c("bio","phy","gene","pedia","med","sur")),
+           clin = factor(clin, labels = c("research","clinical")),
+           cert = factor(cert, labels = c("not certified","certified")),
+           rank = factor(rank,labels = c("assistant","associate","full")),
+           )
+```
+
+## consider transform response variable
+```{r}
+law_df %>% 
+    ggplot(aes(x = sal94)) +
+    geom_histogram()
+
+law_df %>% 
+    pull(sal94) %>%
+    qqnorm()
+
+law_df <- 
+    law_df %>% 
+    mutate(sal94 = log(sal94),
+           sal95 = log(sal94),
+           percent = (sal95 - sal94)/sal94)
+law_df %>% 
+    pull(sal94) %>%
+    qqnorm()
+```
+
+
+# 1. Confounders 
+## 1.1 table1(covariates and outcome by gender)
+```{r}
+# descriptive statistics for variables of interest
+control_table <- tableby.control(
+        total = T,
+        test = T,
+        numeric.stats = c("meansd","medianq1q3","range"),
+        stats.labels = list(meansd = "Mean (SD)",
+                            medianq1q3 = "Median (Q1, Q3)",
+                            range = "Min - Max"),
+        digits = 2
+        ) 
+# cat.stats = "countrowpct" 
+
+law_df %>% 
+        tableby(gender ~ .,
+                data = .,
+                control = control_table) %>% 
+        summary(text = TRUE) %>% 
+        kableExtra::kable(caption = "Characcteristics of college faculty") 
+```
+
+The `clin` and `cert` has a p-value >0.05 (but < 0.20), suggesting that the composition of  `clin` and `cert` are not very different in female and male.
+But still, we will check their impact on coefficient of female later.
+
+# 1.2 exploratory visualization (relationship between salary and exposure/covariate)
+## 1.2.1 categorical
+```{r}
+map(law_df[,c(1:4,7)], 
+    ~ggplot(aes(y = sal94,x = .x, fill = gender),data = law_df) + geom_boxplot()) %>% 
+    cowplot::plot_grid(plotlist = .,ncol = 2,labels = colnames(law_df[,c(1:4,7)]))
+```
+
+I want yo draw your attention to the `rank` plot. 
+Seems that for male, salary doesn't change that much from assistant to full professor. But for female, it changes a lot.   
+
+## 1.2.2 continuous 
+```{r}
+map(law_df[,5:6], 
+    ~ggplot(aes(y = sal94,x = .x, color = gender),data = law_df) + 
+            geom_point() + 
+            geom_smooth(method = "lm",se = F)) %>%
+    cowplot::plot_grid(plotlist = .,ncol = 1,labels = colnames(law_df[,5:6]))
+```
+
+We see a non-parallel(slightly) slope of `exper`, so we may consider interaction term in our model. 
+
+## 1.3 Adjusted vs crude coefficients of female.
+```{r}
+crude <- 
+    lm(sal94 ~ gender, data = law_df) %>% 
+    broom::tidy() %>% 
+    filter(term == "genderFemale") %>% 
+    pull(estimate)
+
+adj <-
+    law_df %>% 
+    select(dept,clin,cert,prate,exper,rank) %>% 
+    map(~lm(sal94 ~ gender + .x, data = law_df) %>% broom::tidy()) %>% 
+    map_dbl(~filter(.x,term == "genderFemale") %>% pull(estimate)) 
+
+change <- round(100*(crude - adj)/crude,digits = 2)
+change
+```
+
+Rule of thumb, these covariate can all be confounders. 
+
+# 2. Interaction:only consider two-way for now
+First, I think it's ok(or not wrong) not to include interaction in our model. 
+But's it's interesting to explore the interaction
+
+## 2.1 continuous-"exper"
+```{r}
+lm(sal94 ~ gender*exper, data = law_df) %>% summary()
+```
+The interaction term is not sig.
+
+## 2.2 categorical
+```{r}
+lm(sal94 ~ gender*dept, data = law_df) %>% summary()
+lm(sal94 ~ gender*clin, data = law_df) %>% summary()
+lm(sal94 ~ gender*cert, data = law_df) %>% summary()
+lm(sal94 ~ gender*rank, data = law_df) %>% summary()
+```
+
+# 3.Multiple linear regression model
+## 3.1 without any interaction
+```{r}
+full <- lm(sal94 ~ gender + dept + clin + cert + prate + exper + rank, data = law_df) 
+summary(full)
+par(mfrow = c(2,2))
+plot(full)
+HH::vif(full)
+```
+
+Ah. May be... there is no "obvious" discrimination. (coz these confouders maybe actually mediators.)
+
+## stepwise(not sure if necessary) 
+```{r}
+lower_gender <- lm(sal94 ~ gender, data = law_df) 
+step(full,scope = list(lower = lower_gender))
+model_stepwise <- lm(formula = sal94 ~ gender + dept + clin + cert + exper + rank, data = law_df) %>% summary()
+```
+
+## 3.2  with some interaction
+```{r}
+
+lm(sal94 ~ dept + clin + cert  +  exper + gender*rank, data = law_df) %>% summary()
+lm(sal94 ~ gender + dept + clin + cert  + gender*exper + gender*rank, data = law_df) %>% summary()
+```
+
+
+
+
+
+
