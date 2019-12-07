@@ -92,6 +92,13 @@ best(full)
 
 ```
 
+```{r}
+# collinearity
+vif(full)
+```
+
+prate may be removed
+
 ## interaction term
 
 ```{r}

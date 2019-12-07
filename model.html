@@ -591,6 +591,14 @@ best(full) </code></pre>
 ## 6 -580.6593
 ## 7 -608.8057
 ## 8 -627.8667</code></pre>
+<pre class="r"><code># collinearity
+vif(full)</code></pre>
+<pre><code>##   deptPhysiology       deptGenetics    deptPediatrics      deptMedicine 
+##          1.607184          1.629419          4.282664          6.379551 
+##       deptSurgery        gendermale      clinresearch certnot certified 
+##          7.215586          1.443762          5.877635          1.329952 
+##             prate             exper     rankassociate          rankfull 
+##         16.626048          1.884661          1.508016          2.225837</code></pre>
 </div>
 <div id="interaction-term" class="section level2">
 <h2>interaction term</h2>
