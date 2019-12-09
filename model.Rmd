@@ -1,8 +1,8 @@
 ---
-title: "Untitled"
+title: "model"
 author: "Qi Yuchen"
-date: "2019/12/3"
-output: html_document
+date: "2019/12/9"
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -12,7 +12,11 @@ library(broom)
 library(dplyr)
 library(HH)
 library(leaps)
-
+library(caret)
+library(purrr)
+library(DataExplorer)
+library(broom)
+library(arsenal)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -42,42 +46,80 @@ df = read_csv("Lawsuit.csv") %>%
   mutate(dept = factor(dept, levels = c(1:6), labels = c("Biochemistry/Molecular Biology", "Physiology ", "Genetics", "Pediatrics", "Medicine", "Surgery")),
          gender = factor(gender, levels = c(0, 1), labels = c("female","male")),
          clin = factor(clin, levels = c(1, 0), labels = c("clinical","research")),
-         cert = factor(cert, levels = c(1, 0), labels = c("certified","not certified")),
+         cert = factor(cert, levels = c(1, 0), labels = c("certified","not_certified")),
          rank = factor(rank, levels = c(1, 2, 3), labels = c("assistant", "associate", "full")),
          sal = (sal94 + sal95)/2)
 
-# descriptive
-df %>% ggplot(aes(x = log(sal94))) +
-  geom_density()
+# consider sal94 only first 
+df_94 = df %>%   
+  mutate(log_sal94 = log(sal94)) %>% 
+  dplyr::select(-sal95, -id, -sal94, -sal)
 
-df %>% 
-  group_by(dept) %>% 
-  summarise(n = n())
-
-
+# from EDA
+law_df <- 
+    read_csv("Lawsuit.csv") %>% 
+    janitor::clean_names() %>% 
+    dplyr::select(-id) %>% 
+    mutate(gender = factor(gender,labels = c("Female","Male")),
+           gender = relevel(gender, ref = "Male"),
+           dept = factor(dept, labels = c("bio","phy","gene","pedia","med","sur")),
+           clin = factor(clin, labels = c("research","clinical")),
+           cert = factor(cert, labels = c("not certified","certified")),
+           rank = factor(rank,labels = c("assistant","associate","full")),
+           )
 ```
 
 # Model
 
 ## main effects
 
-```{r}
-# stepwise
-df_94 = df %>%   
-  mutate(log_sal94 = log(sal94)) %>% 
-  dplyr::select(-sal95, -id, -sal94, -sal)
+### Confounders
 
+First consider confounders
+
+Adjusted vs crude coefficients of female
+
+```{r}
+# form EDA
+crude <- 
+    lm(sal94 ~ gender, data = law_df) %>% 
+    broom::tidy() %>% 
+    filter(term == "genderFemale") %>% 
+    pull(estimate)
+
+adj <-
+    law_df %>% 
+    dplyr::select(dept,clin,cert,prate,exper,rank) %>% 
+    map(~lm(sal94 ~ gender + .x, data = law_df) %>% broom::tidy()) %>% 
+    map_dbl(~filter(.x,term == "genderFemale") %>% pull(estimate)) 
+
+change <- round(100*(crude - adj)/crude,digits = 2)
+change
+
+```
+
+Rule of thumb, these covariate can all be confounders.
+
+Then inlcude them all in the original model.
+
+### model selection process
+
+stepwise
+
+```{r}
 fit_94 <- lm(log_sal94 ~ gender, data = df_94)
 
 biggest <- formula(lm(log_sal94 ~ ., df_94))
 
 step(fit_94, direction = 'both', scope = biggest)
-# weird, all other than gender
 ```
 
+Stepwise using AIC does not include gender.
+
+Criteria
+
 ```{r}
-# criteria
-best <- function(model, ...) 
+best_1 <- function(model, ...) 
 {
   subsets <- regsubsets(formula(model), model.frame(model), ...)
   subsets <- with(summary(subsets),
@@ -86,29 +128,35 @@ best <- function(model, ...)
   return(subsets)
 }  
 
+
 full = lm(log_sal94 ~ ., df_94)
 
-best(full) 
+best_1(full) 
 
 ```
 
+So is using criteria.
+
+### Use VIF to see collinearity
+
 ```{r}
-# collinearity
 vif(full)
 ```
 
-prate may be removed
+prate's VIF is more than 10, we may drop it.
 
-## interaction term
+```{r}
+fit = lm(log_sal94 ~gender+dept+clin+cert+exper+rank, data = df_94)
+
+vif(fit)
+```
+
+Now each VIF < 5, which is good.
+
+# interaction term
 
 ```{r}
 ## general test
-# all
-fit_conf = lm(log_sal94 ~gender+dept+clin+cert+prate+exper+rank, data = df_94)
-
-fit_int = lm(log_sal94 ~gender+dept+clin+cert+prate+exper+gender*dept+gender*clin+gender*cert+gender*prate+gender*exper+gender*rank, data = df_94)
-
-anova(fit_conf, fit_int)
 
 # no prate
 fit_conf = lm(log_sal94 ~gender+dept+clin+cert+exper+rank, data = df_94)
@@ -116,17 +164,16 @@ fit_conf = lm(log_sal94 ~gender+dept+clin+cert+exper+rank, data = df_94)
 fit_int = lm(log_sal94 ~gender+dept+clin+cert+exper+gender*dept+gender*clin+gender*cert+gender*exper+gender*rank, data = df_94)
 
 anova(fit_conf, fit_int)
-
-summary(fit_conf)
-summary(fit_int)
 ```
 
 Maybe no interaction term.
 
-log_sal94 ~gender+dept+clin+cert+exper+rank
+The model now is log_sal94 ~gender+dept+clin+cert+exper+rank
 
 ```{r}
-fit = lm(log_sal94 ~gender+dept+clin+cert+exper+rank, data = df_94)
 summary(fit)
 ```
 
+Adjusted R squared is 0.93, indicating that the model fits well.
+
+From this model, there is no "obvious" discrimination. However, there may be mediators.
