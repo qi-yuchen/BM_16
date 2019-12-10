@@ -238,7 +238,7 @@ Criteria
 ``` r
 best_1 <- function(model, ...) 
 {
-  subsets <- regsubsets(formula(model), model.frame(model), ...)
+  subsets <- regsubsets(formula(model), model.frame(model), method = "exhaustive", nvmax = NULL, force.in = "gendermale",  ...)
   subsets <- with(summary(subsets),
                   cbind(p = as.numeric(rownames(which)), which, rss, rsq, adjr2, cp, bic))
   
@@ -251,44 +251,60 @@ full = lm(log_sal94 ~ ., df_94)
 best_1(full) 
 ```
 
-    ##   p (Intercept) deptPhysiology  deptGenetics deptPediatrics deptMedicine
-    ## 1 1           1               0            0              0            0
-    ## 2 2           1               0            0              0            0
-    ## 3 3           1               0            0              0            0
-    ## 4 4           1               0            0              0            1
-    ## 5 5           1               0            0              0            1
-    ## 6 6           1               1            0              0            1
-    ## 7 7           1               1            0              0            1
-    ## 8 8           1               1            0              0            1
-    ##   deptSurgery gendermale clinresearch certnot_certified prate exper
-    ## 1           0          0            0                 0     1     0
-    ## 2           0          0            0                 0     1     1
-    ## 3           1          0            0                 0     1     1
-    ## 4           1          0            0                 0     1     1
-    ## 5           1          0            0                 1     1     1
-    ## 6           1          0            0                 1     1     1
-    ## 7           1          0            0                 1     1     1
-    ## 8           1          0            0                 1     1     1
-    ##   rankassociate rankfull       rss       rsq     adjr2         cp
-    ## 1             0        0 27.676485 0.5879079 0.5863169 1288.03705
-    ## 2             0        0 16.737115 0.7507909 0.7488590  679.34780
-    ## 3             0        0 13.248223 0.8027391 0.8004365  486.58076
-    ## 4             0        0  8.500209 0.8734352 0.8714576  223.52333
-    ## 5             0        0  7.164852 0.8933182 0.8912264  150.97714
-    ## 6             0        0  6.253262 0.9068914 0.9046919  102.08776
-    ## 7             0        1  5.495572 0.9181731 0.9159091   61.78979
-    ## 8             1        1  5.000770 0.9255405 0.9231767   36.16751
-    ##         bic
-    ## 1 -220.2497
-    ## 2 -345.9563
-    ## 3 -401.4045
-    ## 4 -511.6646
-    ## 5 -550.7059
-    ## 6 -580.6593
-    ## 7 -608.8057
-    ## 8 -627.8667
+    ##     p (Intercept) gendermale deptPhysiology  deptGenetics deptPediatrics
+    ## 2   2           1          1               0            0              0
+    ## 3   3           1          1               0            0              0
+    ## 4   4           1          1               0            0              0
+    ## 5   5           1          1               0            0              0
+    ## 6   6           1          1               0            0              0
+    ## 7   7           1          1               1            0              0
+    ## 8   8           1          1               1            0              0
+    ## 9   9           1          1               1            0              0
+    ## 10 10           1          1               1            1              0
+    ## 11 11           1          1               1            1              1
+    ## 12 12           1          1               1            1              1
+    ##    deptMedicine deptSurgery clinresearch certnot_certified prate exper
+    ## 2             0           0            0                 0     1     0
+    ## 3             0           0            0                 0     1     1
+    ## 4             0           1            0                 0     1     1
+    ## 5             1           1            0                 0     1     1
+    ## 6             1           1            0                 1     1     1
+    ## 7             1           1            0                 1     1     1
+    ## 8             1           1            0                 1     1     1
+    ## 9             1           1            0                 1     1     1
+    ## 10            1           1            0                 1     1     1
+    ## 11            1           1            1                 1     0     1
+    ## 12            1           1            1                 1     1     1
+    ##    rankassociate rankfull       rss       rsq     adjr2         cp
+    ## 2              0        0 23.766734 0.6461226 0.6433794 1071.77560
+    ## 3              0        0 16.194909 0.7588641 0.7560493  651.07921
+    ## 4              0        0 13.043213 0.8057916 0.8027571  477.13611
+    ## 5              0        0  8.437511 0.8743688 0.8719054  222.02324
+    ## 6              0        0  7.087879 0.8944642 0.8919713  148.68017
+    ## 7              0        0  6.169771 0.9081345 0.9055928   99.42689
+    ## 8              0        1  5.472248 0.9185204 0.9159337   62.48771
+    ## 9              1        1  5.000681 0.9255418 0.9228720   38.16254
+    ## 10             1        1  4.728851 0.9295892 0.9267728   24.98766
+    ## 11             1        1  4.471265 0.9334246 0.9304835   12.60795
+    ## 12             1        1  4.442462 0.9338535 0.9306528   13.00000
+    ##          bic
+    ## 2  -254.4345
+    ## 3  -348.9869
+    ## 4  -399.9104
+    ## 5  -508.0324
+    ## 6  -547.9605
+    ## 7  -578.6030
+    ## 8  -604.3513
+    ## 9  -622.3069
+    ## 10 -631.3301
+    ## 11 -640.3844
+    ## 12 -636.5067
 
-So is using criteria.
+``` r
+subsets = regsubsets(formula(full), model.frame(full), method = "exhaustive", nvmax = NULL, force.in = "gendermale")
+```
+
+So is using criteria. If force in gender, the best is without prate.
 
 ### Use VIF to see collinearity
 

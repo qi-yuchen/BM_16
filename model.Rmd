@@ -121,7 +121,7 @@ Criteria
 ```{r}
 best_1 <- function(model, ...) 
 {
-  subsets <- regsubsets(formula(model), model.frame(model), ...)
+  subsets <- regsubsets(formula(model), model.frame(model), method = "exhaustive", nvmax = NULL, force.in = "gendermale",  ...)
   subsets <- with(summary(subsets),
                   cbind(p = as.numeric(rownames(which)), which, rss, rsq, adjr2, cp, bic))
   
@@ -133,9 +133,11 @@ full = lm(log_sal94 ~ ., df_94)
 
 best_1(full) 
 
+subsets = regsubsets(formula(full), model.frame(full), method = "exhaustive", nvmax = NULL, force.in = "gendermale")
+
 ```
 
-So is using criteria.
+So is using criteria. If force in gender, the best is without prate.
 
 ### Use VIF to see collinearity
 
