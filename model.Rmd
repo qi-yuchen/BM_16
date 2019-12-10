@@ -177,3 +177,44 @@ summary(fit)
 Adjusted R squared is 0.93, indicating that the model fits well.
 
 From this model, there is no "obvious" discrimination. However, there may be mediators.
+
+# stratified regression
+
+```{r}
+stratified_dept = df_94 %>%
+  group_by(dept) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_dept %>% 
+    knitr::kable()
+
+stratified_clin = df_94 %>%
+  group_by(clin) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_clin %>% 
+    knitr::kable()
+
+stratified_cert = df_94 %>%
+  group_by(cert) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_cert %>% 
+    knitr::kable()
+
+stratified_rank = df_94 %>%
+  group_by(rank) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_rank %>% 
+    knitr::kable()
+```
+

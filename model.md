@@ -385,3 +385,74 @@ Adjusted R squared is 0.93, indicating that the model fits well.
 
 From this model, there is no “obvious” discrimination. However, there
 may be mediators.
+
+# stratified regression
+
+``` r
+stratified_dept = df_94 %>%
+  group_by(dept) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_dept %>% 
+    knitr::kable()
+```
+
+| dept                           |  n |      coef |
+| :----------------------------- | -: | --------: |
+| Biochemistry/Molecular Biology | 50 | 0.1674974 |
+| Physiology                     | 40 | 0.3184488 |
+| Genetics                       | 21 | 0.3766389 |
+| Pediatrics                     | 30 | 0.1309545 |
+| Medicine                       | 80 | 0.1668338 |
+| Surgery                        | 40 | 0.1345868 |
+
+``` r
+stratified_clin = df_94 %>%
+  group_by(clin) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_clin %>% 
+    knitr::kable()
+```
+
+| clin     |   n |      coef |
+| :------- | --: | --------: |
+| clinical | 160 | 0.3804995 |
+| research | 101 | 0.2752789 |
+
+``` r
+stratified_cert = df_94 %>%
+  group_by(cert) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_cert %>% 
+    knitr::kable()
+```
+
+| cert           |   n |      coef |
+| :------------- | --: | --------: |
+| certified      | 188 | 0.3602442 |
+| not\_certified |  73 | 0.2699972 |
+
+``` r
+stratified_rank = df_94 %>%
+  group_by(rank) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_rank %>% 
+    knitr::kable()
+```
+
+| rank      |   n |      coef |
+| :-------- | --: | --------: |
+| assistant | 112 | 0.5205169 |
+| associate |  64 | 0.2485783 |
+| full      |  85 | 0.1149184 |
