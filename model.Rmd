@@ -1,0 +1,222 @@
+---
+title: "model"
+author: "Qi Yuchen"
+date: "2019/12/9"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(faraway)
+library(broom)
+library(dplyr)
+library(HH)
+library(leaps)
+library(caret)
+library(purrr)
+library(DataExplorer)
+library(broom)
+library(arsenal)
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+```
+
+# Data cleaning
+
+```{r}
+# import
+df = read_csv("Lawsuit.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(dept = factor(dept, levels = c(1:6), labels = c("Biochemistry/Molecular Biology", "Physiology ", "Genetics", "Pediatrics", "Medicine", "Surgery")),
+         gender = factor(gender, levels = c(0, 1), labels = c("female","male")),
+         clin = factor(clin, levels = c(1, 0), labels = c("clinical","research")),
+         cert = factor(cert, levels = c(1, 0), labels = c("certified","not_certified")),
+         rank = factor(rank, levels = c(1, 2, 3), labels = c("assistant", "associate", "full")),
+         sal = (sal94 + sal95)/2)
+
+# consider sal94 only first 
+df_94 = df %>%   
+  mutate(log_sal94 = log(sal94)) %>% 
+  dplyr::select(-sal95, -id, -sal94, -sal)
+
+# from EDA
+law_df <- 
+    read_csv("Lawsuit.csv") %>% 
+    janitor::clean_names() %>% 
+    dplyr::select(-id) %>% 
+    mutate(gender = factor(gender,labels = c("Female","Male")),
+           gender = relevel(gender, ref = "Male"),
+           dept = factor(dept, labels = c("bio","phy","gene","pedia","med","sur")),
+           clin = factor(clin, labels = c("research","clinical")),
+           cert = factor(cert, labels = c("not certified","certified")),
+           rank = factor(rank,labels = c("assistant","associate","full")),
+           )
+```
+
+# Model
+
+## main effects
+
+### Confounders
+
+First consider confounders
+
+Adjusted vs crude coefficients of female
+
+```{r}
+# form EDA
+crude <- 
+    lm(sal94 ~ gender, data = law_df) %>% 
+    broom::tidy() %>% 
+    filter(term == "genderFemale") %>% 
+    pull(estimate)
+
+adj <-
+    law_df %>% 
+    dplyr::select(dept,clin,cert,prate,exper,rank) %>% 
+    map(~lm(sal94 ~ gender + .x, data = law_df) %>% broom::tidy()) %>% 
+    map_dbl(~filter(.x,term == "genderFemale") %>% pull(estimate)) 
+
+change <- round(100*(crude - adj)/crude,digits = 2)
+change
+
+```
+
+Rule of thumb, these covariate can all be confounders.
+
+Then inlcude them all in the original model.
+
+### model selection process
+
+stepwise
+
+```{r}
+fit_94 <- lm(log_sal94 ~ gender, data = df_94)
+
+biggest <- formula(lm(log_sal94 ~ ., df_94))
+
+step(fit_94, direction = 'both', scope = biggest)
+```
+
+Stepwise using AIC does not include gender.
+
+Criteria
+
+```{r}
+best_1 <- function(model, ...) 
+{
+  subsets <- regsubsets(formula(model), model.frame(model), method = "exhaustive", nvmax = NULL, force.in = "gendermale",  ...)
+  subsets <- with(summary(subsets),
+                  cbind(p = as.numeric(rownames(which)), which, rss, rsq, adjr2, cp, bic))
+  
+  return(subsets)
+}  
+
+
+full = lm(log_sal94 ~ ., df_94)
+
+best_1(full) 
+
+subsets = regsubsets(formula(full), model.frame(full), method = "exhaustive", nvmax = NULL, force.in = "gendermale")
+
+```
+
+So is using criteria. If force in gender, the best is without prate.
+
+### Use VIF to see collinearity
+
+```{r}
+vif(full)
+```
+
+prate's VIF is more than 10, we may drop it.
+
+```{r}
+fit = lm(log_sal94 ~gender+dept+clin+cert+exper+rank, data = df_94)
+
+vif(fit)
+```
+
+Now each VIF < 5, which is good.
+
+# interaction term
+
+```{r}
+## general test
+
+# no prate
+fit_conf = lm(log_sal94 ~gender+dept+clin+cert+exper+rank, data = df_94)
+
+fit_int = lm(log_sal94 ~gender+dept+clin+cert+exper+gender*dept+gender*clin+gender*cert+gender*exper+gender*rank, data = df_94)
+
+anova(fit_conf, fit_int)
+```
+
+Maybe no interaction term.
+
+The model now is log_sal94 ~gender+dept+clin+cert+exper+rank
+
+```{r}
+summary(fit)
+```
+
+Adjusted R squared is 0.93, indicating that the model fits well.
+
+From this model, there is no "obvious" discrimination. However, there may be mediators.
+
+# stratified regression
+
+```{r}
+stratified_dept = df_94 %>%
+  group_by(dept) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_dept %>% 
+    knitr::kable()
+
+stratified_clin = df_94 %>%
+  group_by(clin) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_clin %>% 
+    knitr::kable()
+
+stratified_cert = df_94 %>%
+  group_by(cert) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_cert %>% 
+    knitr::kable()
+
+stratified_rank = df_94 %>%
+  group_by(rank) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal94 ~ gender)$coef["gendermale"]
+            )
+stratified_rank %>% 
+    knitr::kable()
+```
+

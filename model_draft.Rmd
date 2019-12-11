@@ -1,0 +1,147 @@
+---
+title: "Untitled"
+author: "Qi Yuchen"
+date: "2019/12/3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(faraway)
+library(broom)
+library(dplyr)
+library(HH)
+library(leaps)
+library(caret)
+library(purrr)
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+```
+
+# Data cleaning
+
+```{r}
+# import
+df = read_csv("Lawsuit.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(dept = factor(dept, levels = c(1:6), labels = c("Biochemistry/Molecular Biology", "Physiology ", "Genetics", "Pediatrics", "Medicine", "Surgery")),
+         gender = factor(gender, levels = c(0, 1), labels = c("female","male")),
+         clin = factor(clin, levels = c(1, 0), labels = c("clinical","research")),
+         cert = factor(cert, levels = c(1, 0), labels = c("certified","not_certified")),
+         rank = factor(rank, levels = c(1, 2, 3), labels = c("assistant", "associate", "full")),
+         sal = (sal94 + sal95)/2)
+
+# descriptive
+df %>% ggplot(aes(x = log(sal94))) +
+  geom_density()
+
+df %>% 
+  group_by(dept) %>% 
+  summarise(n = n())
+
+
+```
+
+# Model
+
+## main effects
+
+### stepwise
+
+```{r}
+df_94 = df %>%   
+  mutate(log_sal94 = log(sal94)) %>% 
+  dplyr::select(-sal95, -id, -sal94, -sal)
+
+fit_94 <- lm(log_sal94 ~ gender, data = df_94)
+
+biggest <- formula(lm(log_sal94 ~ ., df_94))
+
+step(fit_94, direction = 'both', scope = biggest)
+
+# no prate
+df_94 = df %>%   
+  mutate(log_sal94 = log(sal94)) %>% 
+  dplyr::select(-sal95, -id, -sal94, -sal, -prate)
+
+fit_94 <- lm(log_sal94 ~ gender, data = df_94)
+
+biggest <- formula(lm(log_sal94 ~ ., df_94))
+
+step(fit_94, direction = 'forward', scope = biggest)
+```
+
+weird, all other than gender
+
+### criteria
+
+```{r}
+best_1 <- function(model, ...) 
+{
+  subsets <- regsubsets(formula(model), model.frame(model), ...)
+  subsets <- with(summary(subsets),
+                  cbind(p = as.numeric(rownames(which)), which, rss, rsq, adjr2, cp, bic))
+  
+  return(subsets)
+}  
+
+full_temp = lm(log_sal94 ~ ., df_94 %>% dplyr::select(- dept, -rank))
+
+full = lm(log_sal94 ~ ., df_94)
+
+best_1(full) 
+
+```
+
+gender ia still not included
+
+```{r}
+# collinearity
+vif(full)
+```
+
+prate may be removed
+
+## interaction term
+
+```{r}
+## general test
+
+# no prate
+fit_conf = lm(log_sal94 ~gender+dept+clin+cert+exper+rank, data = df_94)
+
+fit_int = lm(log_sal94 ~gender+dept+clin+cert+exper+gender*dept+gender*clin+gender*cert+gender*exper+gender*rank, data = df_94)
+
+anova(fit_conf, fit_int)
+
+```
+
+Maybe no interaction term.
+
+log_sal94 ~gender+dept+clin+cert+exper+rank
+
+```{r}
+
+fit = lm(log_sal94 ~gender+dept+clin+cert+exper+rank, data = df_94)
+fit_inter = lm(log_sal94 ~gender+dept+clin+cert+exper+exper*gender+rank, data = df_94)
+anova(fit, fit_inter)
+
+vif(fit)
+```
+
