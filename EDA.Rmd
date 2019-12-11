@@ -25,27 +25,32 @@ law_df <-
            clin = factor(clin, labels = c("research","clinical")),
            cert = factor(cert, labels = c("not certified","certified")),
            rank = factor(rank,labels = c("assistant","associate","full")),
+           ave_sal = (sal94 + sal95)/2
            )
 ```
 
 ## consider transform response variable
 ```{r}
 law_df %>% 
-    ggplot(aes(x = sal94)) +
-    geom_histogram()
+    ggplot(aes(x = ave_sal, y = ..density..)) +
+    geom_histogram() + 
+    labs(title = "Distribution of salary", x = "salary")
 
 law_df %>% 
-    pull(sal94) %>%
-    qqnorm()
+    ggplot(aes(sample = ave_sal)) + 
+    stat_qq() +
+    stat_qq_line() + 
+    labs(title = "Normal Q-Q plot" , x = "Theoretical Quantiles", y = "Sample Quantiles")
 
 law_df <- 
     law_df %>% 
-    mutate(sal94 = log(sal94),
-           sal95 = log(sal94),
-           percent = (sal95 - sal94)/sal94)
+    mutate(log_ave_sal = log(ave_sal))
+
 law_df %>% 
-    pull(sal94) %>%
-    qqnorm()
+    ggplot(aes(sample = log_ave_sal)) + 
+    stat_qq() +
+    stat_qq_line() + 
+    labs(title = "Normal Q-Q plot" , x = "Theoretical Quantiles", y = "Sample Quantiles")
 ```
 
 
@@ -55,7 +60,7 @@ law_df %>%
 # descriptive statistics for variables of interest
 control_table <- tableby.control(
         total = T,
-        test = T,
+        test = F,
         numeric.stats = c("meansd","medianq1q3","range"),
         stats.labels = list(meansd = "Mean (SD)",
                             medianq1q3 = "Median (Q1, Q3)",
@@ -79,7 +84,7 @@ But still, we will check their impact on coefficient of female later.
 ## 1.2.1 categorical
 ```{r}
 map(law_df[,c(1:4,7)], 
-    ~ggplot(aes(y = sal94,x = .x, fill = gender),data = law_df) + geom_boxplot()) %>% 
+    ~ggplot(aes(y = log_ave_sal,x = .x, fill = gender),data = law_df) + geom_boxplot()) %>% 
     cowplot::plot_grid(plotlist = .,ncol = 2,labels = colnames(law_df[,c(1:4,7)]))
 ```
 
@@ -89,7 +94,7 @@ Seems that for male, salary doesn't change that much from assistant to full prof
 ## 1.2.2 continuous 
 ```{r}
 map(law_df[,5:6], 
-    ~ggplot(aes(y = sal94,x = .x, color = gender),data = law_df) + 
+    ~ggplot(aes(y = log_ave_sal,x = .x, color = gender),data = law_df) + 
             geom_point() + 
             geom_smooth(method = "lm",se = F)) %>%
     cowplot::plot_grid(plotlist = .,ncol = 1,labels = colnames(law_df[,5:6]))
@@ -100,7 +105,7 @@ We see a non-parallel(slightly) slope of `exper`, so we may consider interaction
 ## 1.3 Adjusted vs crude coefficients of female.
 ```{r}
 crude <- 
-    lm(sal94 ~ gender, data = law_df) %>% 
+    lm(log_ave_sal ~ gender, data = law_df) %>% 
     broom::tidy() %>% 
     filter(term == "genderFemale") %>% 
     pull(estimate)
@@ -108,14 +113,14 @@ crude <-
 adj <-
     law_df %>% 
     select(dept,clin,cert,prate,exper,rank) %>% 
-    map(~lm(sal94 ~ gender + .x, data = law_df) %>% broom::tidy()) %>% 
+    map(~lm(log_ave_sal ~ gender + .x, data = law_df) %>% broom::tidy()) %>% 
     map_dbl(~filter(.x,term == "genderFemale") %>% pull(estimate)) 
 
 change <- round(100*(crude - adj)/crude,digits = 2)
 change
 ```
 
-Rule of thumb, these covariate can all be confounders. 
+Rule of thumb, these covariate can all be confounders. (?)
 
 # 2. Interaction:only consider two-way for now
 First, I think it's ok(or not wrong) not to include interaction in our model. 
@@ -124,7 +129,7 @@ But's it's interesting to explore the interaction
 # 3.Multiple linear regression model
 ## 3.1 without any interaction
 ```{r}
-full <- lm(sal94 ~ gender + dept + clin + cert + prate + exper + rank, data = law_df) 
+full <- lm(log_ave_sal ~ gender + dept + clin + cert + prate + exper + rank, data = law_df) 
 summary(full)
 par(mfrow = c(2,2))
 plot(full)
@@ -135,20 +140,20 @@ Ah. May be... there is no "obvious" discrimination. (coz these confouders maybe 
 
 ## stepwise(not sure if necessary) 
 ```{r}
-lower_gender <- lm(sal94 ~ gender, data = law_df) 
+lower_gender <- lm(log_ave_sal ~ gender, data = law_df) 
 step(full,scope = list(lower = lower_gender))
-model_stepwise <- lm(formula = sal94 ~ gender + dept + clin + cert + exper + rank, data = law_df) 
+model_stepwise <- lm(log_ave_sal ~ gender + dept + clin + cert + exper + rank, data = law_df) 
+summary(model_stepwise )
 ```
 
 ## 3.2  with some interaction
 ```{r}
-model_stepwise <- lm(sal94 ~ gender + dept + clin + cert + exper + rank, data = law_df) 
+inter1 <- lm(log_ave_sal ~ gender + dept +clin + cert  +  gender*exper + gender*rank,data = law_df) 
+summary(inter1 )
 
-inter1 <- lm(sal94 ~ gender + gender*dept + gender*clin + gender*cert  +  gender*exper + gender*exper + gender*rank,data = law_df) 
+inter2 <- lm(log_ave_sal ~ gender + dept +clin + cert  +  gender*exper + rank,data = law_df) 
+summary(inter2)
 
-anova(model_stepwise,inter1)
-
-lm(sal94 ~ gender + dept + clin + cert  + gender*exper + gender*rank, data = law_df) %>% summary()
 ```
 
 

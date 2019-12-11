@@ -16,6 +16,7 @@ law_df <-
            clin = factor(clin, labels = c("research","clinical")),
            cert = factor(cert, labels = c("not certified","certified")),
            rank = factor(rank,labels = c("assistant","associate","full")),
+           ave_sal = (sal94 + sal95)/2
            )
 ```
 
@@ -37,8 +38,9 @@ law_df <-
 
 ``` r
 law_df %>% 
-    ggplot(aes(x = sal94)) +
-    geom_histogram()
+    ggplot(aes(x = ave_sal, y = ..density..)) +
+    geom_histogram() + 
+    labs(title = "Distribution of salary", x = "salary")
 ```
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
@@ -47,8 +49,10 @@ law_df %>%
 
 ``` r
 law_df %>% 
-    pull(sal94) %>%
-    qqnorm()
+    ggplot(aes(sample = ave_sal)) + 
+    stat_qq() +
+    stat_qq_line() + 
+    labs(title = "Normal Q-Q plot" , x = "Theoretical Quantiles", y = "Sample Quantiles")
 ```
 
 ![](EDA_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
@@ -56,12 +60,13 @@ law_df %>%
 ``` r
 law_df <- 
     law_df %>% 
-    mutate(sal94 = log(sal94),
-           sal95 = log(sal94),
-           percent = (sal95 - sal94)/sal94)
+    mutate(log_ave_sal = log(ave_sal))
+
 law_df %>% 
-    pull(sal94) %>%
-    qqnorm()
+    ggplot(aes(sample = log_ave_sal)) + 
+    stat_qq() +
+    stat_qq_line() + 
+    labs(title = "Normal Q-Q plot" , x = "Theoretical Quantiles", y = "Sample Quantiles")
 ```
 
 ![](EDA_files/figure-gfm/unnamed-chunk-2-3.png)<!-- -->
@@ -74,7 +79,7 @@ law_df %>%
 # descriptive statistics for variables of interest
 control_table <- tableby.control(
         total = T,
-        test = T,
+        test = F,
         numeric.stats = c("meansd","medianq1q3","range"),
         stats.labels = list(meansd = "Mean (SD)",
                             medianq1q3 = "Median (Q1, Q3)",
@@ -125,12 +130,6 @@ Total (N=261)
 
 </th>
 
-<th style="text-align:left;">
-
-p value
-
-</th>
-
 </tr>
 
 </thead>
@@ -157,12 +156,6 @@ dept
 
 </td>
 
-<td style="text-align:left;">
-
-\< 0.001
-
-</td>
-
 </tr>
 
 <tr>
@@ -180,8 +173,6 @@ dept
     <td style="text-align:left;">
     50 (19.2%)
     </td>
-    <td style="text-align:left;">
-    </td>
     </tr>
     <tr>
     <td style="text-align:left;">
@@ -195,8 +186,6 @@ dept
         </td>
         <td style="text-align:left;">
         40 (15.3%)
-        </td>
-        <td style="text-align:left;">
         </td>
         </tr>
         <tr>
@@ -212,8 +201,6 @@ dept
             <td style="text-align:left;">
             21 (8.0%)
             </td>
-            <td style="text-align:left;">
-            </td>
             </tr>
             <tr>
             <td style="text-align:left;">
@@ -227,8 +214,6 @@ dept
                 </td>
                 <td style="text-align:left;">
                 30 (11.5%)
-                </td>
-                <td style="text-align:left;">
                 </td>
                 </tr>
                 <tr>
@@ -244,8 +229,6 @@ dept
                     <td style="text-align:left;">
                     80 (30.7%)
                     </td>
-                    <td style="text-align:left;">
-                    </td>
                     </tr>
                     <tr>
                     <td style="text-align:left;">
@@ -260,8 +243,6 @@ dept
                         <td style="text-align:left;">
                         40 (15.3%)
                         </td>
-                        <td style="text-align:left;">
-                        </td>
                         </tr>
                         <tr>
                         <td style="text-align:left;">
@@ -272,9 +253,6 @@ dept
                         <td style="text-align:left;">
                         </td>
                         <td style="text-align:left;">
-                        </td>
-                        <td style="text-align:left;">
-                        0.197
                         </td>
                         </tr>
                         <tr>
@@ -290,8 +268,6 @@ dept
                             <td style="text-align:left;">
                             101 (38.7%)
                             </td>
-                            <td style="text-align:left;">
-                            </td>
                             </tr>
                             <tr>
                             <td style="text-align:left;">
@@ -306,8 +282,6 @@ dept
                                 <td style="text-align:left;">
                                 160 (61.3%)
                                 </td>
-                                <td style="text-align:left;">
-                                </td>
                                 </tr>
                                 <tr>
                                 <td style="text-align:left;">
@@ -318,9 +292,6 @@ dept
                                 <td style="text-align:left;">
                                 </td>
                                 <td style="text-align:left;">
-                                </td>
-                                <td style="text-align:left;">
-                                0.074
                                 </td>
                                 </tr>
                                 <tr>
@@ -336,8 +307,6 @@ dept
                                     <td style="text-align:left;">
                                     73 (28.0%)
                                     </td>
-                                    <td style="text-align:left;">
-                                    </td>
                                     </tr>
                                     <tr>
                                     <td style="text-align:left;">
@@ -352,8 +321,6 @@ dept
                                         <td style="text-align:left;">
                                         188 (72.0%)
                                         </td>
-                                        <td style="text-align:left;">
-                                        </td>
                                         </tr>
                                         <tr>
                                         <td style="text-align:left;">
@@ -364,9 +331,6 @@ dept
                                         <td style="text-align:left;">
                                         </td>
                                         <td style="text-align:left;">
-                                        </td>
-                                        <td style="text-align:left;">
-                                        0.004
                                         </td>
                                         </tr>
                                         <tr>
@@ -386,8 +350,6 @@ dept
                                             4.93
                                             (1.94)
                                             </td>
-                                            <td style="text-align:left;">
-                                            </td>
                                             </tr>
                                             <tr>
                                             <td style="text-align:left;">
@@ -405,8 +367,6 @@ dept
                                                 <td style="text-align:left;">
                                                 4.40 (3.20,
                                                 6.90)
-                                                </td>
-                                                <td style="text-align:left;">
                                                 </td>
                                                 </tr>
                                                 <tr>
@@ -426,8 +386,6 @@ dept
                                                     1.30 -
                                                     8.70
                                                     </td>
-                                                    <td style="text-align:left;">
-                                                    </td>
                                                     </tr>
                                                     <tr>
                                                     <td style="text-align:left;">
@@ -438,10 +396,6 @@ dept
                                                     <td style="text-align:left;">
                                                     </td>
                                                     <td style="text-align:left;">
-                                                    </td>
-                                                    <td style="text-align:left;">
-                                                    \<
-                                                    0.001
                                                     </td>
                                                     </tr>
                                                     <tr>
@@ -461,8 +415,6 @@ dept
                                                         10.23
                                                         (6.23)
                                                         </td>
-                                                        <td style="text-align:left;">
-                                                        </td>
                                                         </tr>
                                                         <tr>
                                                         <td style="text-align:left;">
@@ -480,8 +432,6 @@ dept
                                                             <td style="text-align:left;">
                                                             9.00 (6.00,
                                                             14.00)
-                                                            </td>
-                                                            <td style="text-align:left;">
                                                             </td>
                                                             </tr>
                                                             <tr>
@@ -501,8 +451,6 @@ dept
                                                                 1.00 -
                                                                 37.00
                                                                 </td>
-                                                                <td style="text-align:left;">
-                                                                </td>
                                                                 </tr>
                                                                 <tr>
                                                                 <td style="text-align:left;">
@@ -513,10 +461,6 @@ dept
                                                                 <td style="text-align:left;">
                                                                 </td>
                                                                 <td style="text-align:left;">
-                                                                </td>
-                                                                <td style="text-align:left;">
-                                                                \<
-                                                                0.001
                                                                 </td>
                                                                 </tr>
                                                                 <tr>
@@ -535,8 +479,6 @@ dept
                                                                     112
                                                                     (42.9%)
                                                                     </td>
-                                                                    <td style="text-align:left;">
-                                                                    </td>
                                                                     </tr>
                                                                     <tr>
                                                                     <td style="text-align:left;">
@@ -553,8 +495,6 @@ dept
                                                                         <td style="text-align:left;">
                                                                         64
                                                                         (24.5%)
-                                                                        </td>
-                                                                        <td style="text-align:left;">
                                                                         </td>
                                                                         </tr>
                                                                         <tr>
@@ -573,8 +513,6 @@ dept
                                                                             85
                                                                             (32.6%)
                                                                             </td>
-                                                                            <td style="text-align:left;">
-                                                                            </td>
                                                                             </tr>
                                                                             <tr>
                                                                             <td style="text-align:left;">
@@ -586,10 +524,6 @@ dept
                                                                             </td>
                                                                             <td style="text-align:left;">
                                                                             </td>
-                                                                            <td style="text-align:left;">
-                                                                            \<
-                                                                            0.001
-                                                                            </td>
                                                                             </tr>
                                                                             <tr>
                                                                             <td style="text-align:left;">
@@ -597,18 +531,16 @@ dept
                                                                                 (SD)
                                                                                 </td>
                                                                                 <td style="text-align:left;">
-                                                                                11.97
-                                                                                (0.49)
+                                                                                177338.76
+                                                                                (85930.54)
                                                                                 </td>
                                                                                 <td style="text-align:left;">
-                                                                                11.58
-                                                                                (0.45)
+                                                                                118871.27
+                                                                                (56168.01)
                                                                                 </td>
                                                                                 <td style="text-align:left;">
-                                                                                11.81
-                                                                                (0.51)
-                                                                                </td>
-                                                                                <td style="text-align:left;">
+                                                                                153593.34
+                                                                                (80469.67)
                                                                                 </td>
                                                                                 </tr>
                                                                                 <tr>
@@ -618,21 +550,19 @@ dept
                                                                                     Q3)
                                                                                     </td>
                                                                                     <td style="text-align:left;">
-                                                                                    11.95
-                                                                                    (11.61,
-                                                                                    12.35)
+                                                                                    155006.00
+                                                                                    (109687.00,
+                                                                                    231501.50)
                                                                                     </td>
                                                                                     <td style="text-align:left;">
-                                                                                    11.59
-                                                                                    (11.24,
-                                                                                    11.87)
+                                                                                    108457.00
+                                                                                    (75774.50,
+                                                                                    143096.00)
                                                                                     </td>
                                                                                     <td style="text-align:left;">
-                                                                                    11.80
-                                                                                    (11.42,
-                                                                                    12.21)
-                                                                                    </td>
-                                                                                    <td style="text-align:left;">
+                                                                                    133284.00
+                                                                                    (90771.00,
+                                                                                    200543.00)
                                                                                     </td>
                                                                                     </tr>
                                                                                     <tr>
@@ -642,21 +572,19 @@ dept
                                                                                         Max
                                                                                         </td>
                                                                                         <td style="text-align:left;">
-                                                                                        10.87
+                                                                                        52582.00
                                                                                         -
-                                                                                        12.97
+                                                                                        428876.00
                                                                                         </td>
                                                                                         <td style="text-align:left;">
-                                                                                        10.45
+                                                                                        34514.00
                                                                                         -
-                                                                                        12.64
+                                                                                        308081.00
                                                                                         </td>
                                                                                         <td style="text-align:left;">
-                                                                                        10.45
+                                                                                        34514.00
                                                                                         -
-                                                                                        12.97
-                                                                                        </td>
-                                                                                        <td style="text-align:left;">
+                                                                                        428876.00
                                                                                         </td>
                                                                                         </tr>
                                                                                         <tr>
@@ -669,10 +597,6 @@ dept
                                                                                         </td>
                                                                                         <td style="text-align:left;">
                                                                                         </td>
-                                                                                        <td style="text-align:left;">
-                                                                                        \<
-                                                                                        0.001
-                                                                                        </td>
                                                                                         </tr>
                                                                                         <tr>
                                                                                         <td style="text-align:left;">
@@ -680,18 +604,16 @@ dept
                                                                                             (SD)
                                                                                             </td>
                                                                                             <td style="text-align:left;">
-                                                                                            2.48
-                                                                                            (0.04)
+                                                                                            194914.09
+                                                                                            (94902.73)
                                                                                             </td>
                                                                                             <td style="text-align:left;">
-                                                                                            2.45
-                                                                                            (0.04)
+                                                                                            130876.92
+                                                                                            (62034.51)
                                                                                             </td>
                                                                                             <td style="text-align:left;">
-                                                                                            2.47
-                                                                                            (0.04)
-                                                                                            </td>
-                                                                                            <td style="text-align:left;">
+                                                                                            168906.66
+                                                                                            (88778.43)
                                                                                             </td>
                                                                                             </tr>
                                                                                             <tr>
@@ -701,21 +623,19 @@ dept
                                                                                                 Q3)
                                                                                                 </td>
                                                                                                 <td style="text-align:left;">
-                                                                                                2.48
-                                                                                                (2.45,
-                                                                                                2.51)
+                                                                                                170967.00
+                                                                                                (119952.50,
+                                                                                                257163.00)
                                                                                                 </td>
                                                                                                 <td style="text-align:left;">
-                                                                                                2.45
-                                                                                                (2.42,
-                                                                                                2.47)
+                                                                                                119135.00
+                                                                                                (82345.25,
+                                                                                                154170.50)
                                                                                                 </td>
                                                                                                 <td style="text-align:left;">
-                                                                                                2.47
-                                                                                                (2.44,
-                                                                                                2.50)
-                                                                                                </td>
-                                                                                                <td style="text-align:left;">
+                                                                                                148117.00
+                                                                                                (99972.00,
+                                                                                                218955.00)
                                                                                                 </td>
                                                                                                 </tr>
                                                                                                 <tr>
@@ -725,36 +645,30 @@ dept
                                                                                                     Max
                                                                                                     </td>
                                                                                                     <td style="text-align:left;">
-                                                                                                    2.39
+                                                                                                    58923.00
                                                                                                     -
-                                                                                                    2.56
+                                                                                                    472589.00
                                                                                                     </td>
                                                                                                     <td style="text-align:left;">
-                                                                                                    2.35
+                                                                                                    38675.00
                                                                                                     -
-                                                                                                    2.54
+                                                                                                    339664.00
                                                                                                     </td>
                                                                                                     <td style="text-align:left;">
-                                                                                                    2.35
+                                                                                                    38675.00
                                                                                                     -
-                                                                                                    2.56
-                                                                                                    </td>
-                                                                                                    <td style="text-align:left;">
+                                                                                                    472589.00
                                                                                                     </td>
                                                                                                     </tr>
                                                                                                     <tr>
                                                                                                     <td style="text-align:left;">
-                                                                                                    percent
+                                                                                                    ave\_sal
                                                                                                     </td>
                                                                                                     <td style="text-align:left;">
                                                                                                     </td>
                                                                                                     <td style="text-align:left;">
                                                                                                     </td>
                                                                                                     <td style="text-align:left;">
-                                                                                                    </td>
-                                                                                                    <td style="text-align:left;">
-                                                                                                    \<
-                                                                                                    0.001
                                                                                                     </td>
                                                                                                     </tr>
                                                                                                     <tr>
@@ -763,18 +677,16 @@ dept
                                                                                                         (SD)
                                                                                                         </td>
                                                                                                         <td style="text-align:left;">
-                                                                                                        \-0.79
-                                                                                                        (0.01)
+                                                                                                        186126.43
+                                                                                                        (90397.11)
                                                                                                         </td>
                                                                                                         <td style="text-align:left;">
-                                                                                                        \-0.79
-                                                                                                        (0.00)
+                                                                                                        124874.09
+                                                                                                        (59089.62)
                                                                                                         </td>
                                                                                                         <td style="text-align:left;">
-                                                                                                        \-0.79
-                                                                                                        (0.01)
-                                                                                                        </td>
-                                                                                                        <td style="text-align:left;">
+                                                                                                        161250.00
+                                                                                                        (84608.33)
                                                                                                         </td>
                                                                                                         </tr>
                                                                                                         <tr>
@@ -784,21 +696,19 @@ dept
                                                                                                             Q3)
                                                                                                             </td>
                                                                                                             <td style="text-align:left;">
-                                                                                                            \-0.79
-                                                                                                            (-0.80,
-                                                                                                            -0.79)
+                                                                                                            162987.00
+                                                                                                            (114612.50,
+                                                                                                            244332.25)
                                                                                                             </td>
                                                                                                             <td style="text-align:left;">
-                                                                                                            \-0.79
-                                                                                                            (-0.79,
-                                                                                                            -0.78)
+                                                                                                            113706.00
+                                                                                                            (79059.88,
+                                                                                                            148401.12)
                                                                                                             </td>
                                                                                                             <td style="text-align:left;">
-                                                                                                            \-0.79
-                                                                                                            (-0.80,
-                                                                                                            -0.79)
-                                                                                                            </td>
-                                                                                                            <td style="text-align:left;">
+                                                                                                            141628.00
+                                                                                                            (95176.50,
+                                                                                                            210012.50)
                                                                                                             </td>
                                                                                                             </tr>
                                                                                                             <tr>
@@ -808,25 +718,96 @@ dept
                                                                                                                 Max
                                                                                                                 </td>
                                                                                                                 <td style="text-align:left;">
-                                                                                                                \-0.80
+                                                                                                                55752.50
                                                                                                                 -
-                                                                                                                -0.78
+                                                                                                                445859.00
                                                                                                                 </td>
                                                                                                                 <td style="text-align:left;">
-                                                                                                                \-0.80
+                                                                                                                36594.50
                                                                                                                 -
-                                                                                                                -0.78
+                                                                                                                323872.50
                                                                                                                 </td>
                                                                                                                 <td style="text-align:left;">
-                                                                                                                \-0.80
+                                                                                                                36594.50
                                                                                                                 -
-                                                                                                                -0.78
+                                                                                                                445859.00
+                                                                                                                </td>
+                                                                                                                </tr>
+                                                                                                                <tr>
+                                                                                                                <td style="text-align:left;">
+                                                                                                                log\_ave\_sal
+                                                                                                                </td>
+                                                                                                                <td style="text-align:left;">
+                                                                                                                </td>
+                                                                                                                <td style="text-align:left;">
                                                                                                                 </td>
                                                                                                                 <td style="text-align:left;">
                                                                                                                 </td>
                                                                                                                 </tr>
-                                                                                                                </tbody>
-                                                                                                                </table>
+                                                                                                                <tr>
+                                                                                                                <td style="text-align:left;">
+                                                                                                                  - Mean
+                                                                                                                    (SD)
+                                                                                                                    </td>
+                                                                                                                    <td style="text-align:left;">
+                                                                                                                    12.02
+                                                                                                                    (0.49)
+                                                                                                                    </td>
+                                                                                                                    <td style="text-align:left;">
+                                                                                                                    11.63
+                                                                                                                    (0.45)
+                                                                                                                    </td>
+                                                                                                                    <td style="text-align:left;">
+                                                                                                                    11.86
+                                                                                                                    (0.51)
+                                                                                                                    </td>
+                                                                                                                    </tr>
+                                                                                                                    <tr>
+                                                                                                                    <td style="text-align:left;">
+                                                                                                                      - Median
+                                                                                                                        (Q1,
+                                                                                                                        Q3)
+                                                                                                                        </td>
+                                                                                                                        <td style="text-align:left;">
+                                                                                                                        12.00
+                                                                                                                        (11.65,
+                                                                                                                        12.41)
+                                                                                                                        </td>
+                                                                                                                        <td style="text-align:left;">
+                                                                                                                        11.64
+                                                                                                                        (11.28,
+                                                                                                                        11.91)
+                                                                                                                        </td>
+                                                                                                                        <td style="text-align:left;">
+                                                                                                                        11.86
+                                                                                                                        (11.46,
+                                                                                                                        12.25)
+                                                                                                                        </td>
+                                                                                                                        </tr>
+                                                                                                                        <tr>
+                                                                                                                        <td style="text-align:left;">
+                                                                                                                          - Min
+                                                                                                                            -
+                                                                                                                            Max
+                                                                                                                            </td>
+                                                                                                                            <td style="text-align:left;">
+                                                                                                                            10.93
+                                                                                                                            -
+                                                                                                                            13.01
+                                                                                                                            </td>
+                                                                                                                            <td style="text-align:left;">
+                                                                                                                            10.51
+                                                                                                                            -
+                                                                                                                            12.69
+                                                                                                                            </td>
+                                                                                                                            <td style="text-align:left;">
+                                                                                                                            10.51
+                                                                                                                            -
+                                                                                                                            13.01
+                                                                                                                            </td>
+                                                                                                                            </tr>
+                                                                                                                            </tbody>
+                                                                                                                            </table>
 
 The `clin` and `cert` has a p-value \>0.05 (but \< 0.20), suggesting
 that the composition of `clin` and `cert` are not very different in
@@ -840,7 +821,7 @@ later.
 
 ``` r
 map(law_df[,c(1:4,7)], 
-    ~ggplot(aes(y = sal94,x = .x, fill = gender),data = law_df) + geom_boxplot()) %>% 
+    ~ggplot(aes(y = log_ave_sal,x = .x, fill = gender),data = law_df) + geom_boxplot()) %>% 
     cowplot::plot_grid(plotlist = .,ncol = 2,labels = colnames(law_df[,c(1:4,7)]))
 ```
 
@@ -854,7 +835,7 @@ for female, it changes a lot.
 
 ``` r
 map(law_df[,5:6], 
-    ~ggplot(aes(y = sal94,x = .x, color = gender),data = law_df) + 
+    ~ggplot(aes(y = log_ave_sal,x = .x, color = gender),data = law_df) + 
             geom_point() + 
             geom_smooth(method = "lm",se = F)) %>%
     cowplot::plot_grid(plotlist = .,ncol = 1,labels = colnames(law_df[,5:6]))
@@ -869,7 +850,7 @@ interaction term in our model.
 
 ``` r
 crude <- 
-    lm(sal94 ~ gender, data = law_df) %>% 
+    lm(log_ave_sal ~ gender, data = law_df) %>% 
     broom::tidy() %>% 
     filter(term == "genderFemale") %>% 
     pull(estimate)
@@ -877,7 +858,7 @@ crude <-
 adj <-
     law_df %>% 
     select(dept,clin,cert,prate,exper,rank) %>% 
-    map(~lm(sal94 ~ gender + .x, data = law_df) %>% broom::tidy()) %>% 
+    map(~lm(log_ave_sal ~ gender + .x, data = law_df) %>% broom::tidy()) %>% 
     map_dbl(~filter(.x,term == "genderFemale") %>% pull(estimate)) 
 
 change <- round(100*(crude - adj)/crude,digits = 2)
@@ -885,202 +866,62 @@ change
 ```
 
     ##  dept  clin  cert prate exper  rank 
-    ## 46.62 12.40 13.59 34.43 20.11  9.22
+    ## 46.74 12.49 13.61 34.65 20.18  9.30
 
-Rule of thumb, these covariate can all be confounders.
+Rule of thumb, these covariate can all be confounders. (?)
 
 # 2\. Interaction:only consider two-way for now
 
 First, I think it’s ok(or not wrong) not to include interaction in our
-model. But’s it’s interesting to explore the interaction
-
-## 2.1 continuous-“exper”
-
-``` r
-lm(sal94 ~ gender*exper, data = law_df) %>% summary()
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = sal94 ~ gender * exper, data = law_df)
-    ## 
-    ## Residuals:
-    ##      Min       1Q   Median       3Q      Max 
-    ## -1.00503 -0.36180  0.02023  0.34885  1.00884 
-    ## 
-    ## Coefficients:
-    ##                     Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)        11.808010   0.076815 153.720  < 2e-16 ***
-    ## genderFemale       -0.446824   0.120388  -3.712 0.000253 ***
-    ## exper               0.013429   0.005556   2.417 0.016344 *  
-    ## genderFemale:exper  0.016358   0.012169   1.344 0.180065    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 0.4622 on 257 degrees of freedom
-    ## Multiple R-squared:  0.1825, Adjusted R-squared:  0.1729 
-    ## F-statistic: 19.12 on 3 and 257 DF,  p-value: 3.174e-11
-
-The interaction term is not sig.
-
-## 2.2 categorical
-
-``` r
-lm(sal94 ~ gender*dept, data = law_df) %>% summary()
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = sal94 ~ gender * dept, data = law_df)
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -0.6593 -0.1864 -0.0359  0.1673  0.6492 
-    ## 
-    ## Coefficients:
-    ##                          Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)            11.4885070  0.0461070 249.171  < 2e-16 ***
-    ## genderFemale           -0.1674974  0.0729016  -2.298  0.02242 *  
-    ## deptphy                -0.0616152  0.0729016  -0.845  0.39882    
-    ## deptgene                0.3051883  0.0922140   3.310  0.00107 ** 
-    ## deptpedia               0.2659146  0.0922140   2.884  0.00427 ** 
-    ## deptmed                 0.6491313  0.0583212  11.130  < 2e-16 ***
-    ## deptsur                 1.0794653  0.0628332  17.180  < 2e-16 ***
-    ## genderFemale:deptphy   -0.1509514  0.1081305  -1.396  0.16395    
-    ## genderFemale:deptgene  -0.2091415  0.1322497  -1.581  0.11505    
-    ## genderFemale:deptpedia  0.0365429  0.1219876   0.300  0.76476    
-    ## genderFemale:deptmed    0.0006635  0.0933595   0.007  0.99433    
-    ## genderFemale:deptsur    0.0329106  0.1410387   0.233  0.81569    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 0.2525 on 249 degrees of freedom
-    ## Multiple R-squared:  0.7636, Adjusted R-squared:  0.7531 
-    ## F-statistic:  73.1 on 11 and 249 DF,  p-value: < 2.2e-16
-
-``` r
-lm(sal94 ~ gender*clin, data = law_df) %>% summary()
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = sal94 ~ gender * clin, data = law_df)
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -1.0250 -0.2522 -0.0198  0.2552  0.9745 
-    ## 
-    ## Coefficients:
-    ##                           Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)               11.55144    0.04982 231.877  < 2e-16 ***
-    ## genderFemale              -0.27528    0.07382  -3.729 0.000236 ***
-    ## clinclinical               0.64961    0.06202  10.474  < 2e-16 ***
-    ## genderFemale:clinclinical -0.10522    0.09534  -1.104 0.270763    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 0.3695 on 257 degrees of freedom
-    ## Multiple R-squared:  0.4777, Adjusted R-squared:  0.4716 
-    ## F-statistic: 78.35 on 3 and 257 DF,  p-value: < 2.2e-16
-
-``` r
-lm(sal94 ~ gender*cert, data = law_df) %>% summary()
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = sal94 ~ gender * cert, data = law_df)
-    ## 
-    ## Residuals:
-    ##      Min       1Q   Median       3Q      Max 
-    ## -1.13417 -0.28087 -0.00954  0.30299  1.06282 
-    ## 
-    ## Coefficients:
-    ##                            Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)                11.54323    0.06773 170.432  < 2e-16 ***
-    ## genderFemale               -0.27000    0.09645  -2.799  0.00551 ** 
-    ## certcertified               0.56131    0.07762   7.231 5.49e-12 ***
-    ## genderFemale:certcertified -0.09025    0.11474  -0.787  0.43227    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 0.412 on 257 degrees of freedom
-    ## Multiple R-squared:  0.3505, Adjusted R-squared:  0.3429 
-    ## F-statistic: 46.23 on 3 and 257 DF,  p-value: < 2.2e-16
-
-``` r
-lm(sal94 ~ gender*rank, data = law_df) %>% summary()
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = sal94 ~ gender * rank, data = law_df)
-    ## 
-    ## Residuals:
-    ##      Min       1Q   Median       3Q      Max 
-    ## -1.05271 -0.37554  0.01028  0.34601  0.97298 
-    ## 
-    ## Coefficients:
-    ##                            Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)                12.02235    0.07103 169.265  < 2e-16 ***
-    ## genderFemale               -0.52052    0.09049  -5.752 2.52e-08 ***
-    ## rankassociate              -0.14468    0.10045  -1.440   0.1510    
-    ## rankfull                   -0.02620    0.09049  -0.290   0.7724    
-    ## genderFemale:rankassociate  0.27194    0.15350   1.772   0.0777 .  
-    ## genderFemale:rankfull       0.40560    0.15777   2.571   0.0107 *  
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 0.4658 on 255 degrees of freedom
-    ## Multiple R-squared:  0.1764, Adjusted R-squared:  0.1602 
-    ## F-statistic: 10.92 on 5 and 255 DF,  p-value: 1.551e-09
+model. But’s it’s interesting to explore the
+interaction
 
 # 3.Multiple linear regression model
 
 ## 3.1 without any interaction
 
 ``` r
-full <- lm(sal94 ~ gender + dept + clin + cert + prate + exper + rank, data = law_df) 
+full <- lm(log_ave_sal ~ gender + dept + clin + cert + prate + exper + rank, data = law_df) 
 summary(full)
 ```
 
     ## 
     ## Call:
-    ## lm(formula = sal94 ~ gender + dept + clin + cert + prate + exper + 
-    ##     rank, data = law_df)
+    ## lm(formula = log_ave_sal ~ gender + dept + clin + cert + prate + 
+    ##     exper + rank, data = law_df)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -0.34833 -0.07668 -0.01446  0.08196  0.89241 
+    ## -0.33729 -0.07685 -0.01218  0.07599  0.89829 
     ## 
     ## Coefficients:
-    ##               Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   11.11749    0.13102  84.850  < 2e-16 ***
-    ## genderFemale  -0.02089    0.02027  -1.030 0.303817    
-    ## deptphy       -0.17620    0.02916  -6.043 5.50e-09 ***
-    ## deptgene       0.17021    0.03888   4.378 1.77e-05 ***
-    ## deptpedia      0.14848    0.05375   2.762 0.006169 ** 
-    ## deptmed        0.49591    0.04539  10.927  < 2e-16 ***
-    ## deptsur        0.86754    0.06177  14.043  < 2e-16 ***
-    ## clinclinical   0.16065    0.04124   3.896 0.000126 ***
-    ## certcertified  0.19306    0.02129   9.070  < 2e-16 ***
-    ## prate         -0.02207    0.01741  -1.268 0.205970    
-    ## exper          0.01798    0.00183   9.828  < 2e-16 ***
-    ## rankassociate  0.13105    0.02365   5.542 7.63e-08 ***
-    ## rankfull       0.21854    0.02637   8.286 7.39e-15 ***
+    ##                Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)   11.160406   0.130732  85.369  < 2e-16 ***
+    ## genderFemale  -0.019536   0.020224  -0.966  0.33500    
+    ## deptphy       -0.175521   0.029090  -6.034 5.80e-09 ***
+    ## deptgene       0.169395   0.038791   4.367 1.85e-05 ***
+    ## deptpedia      0.153235   0.053632   2.857  0.00464 ** 
+    ## deptmed        0.496297   0.045284  10.960  < 2e-16 ***
+    ## deptsur        0.870767   0.061638  14.127  < 2e-16 ***
+    ## clinclinical   0.164726   0.041145   4.004 8.25e-05 ***
+    ## certcertified  0.190855   0.021238   8.987  < 2e-16 ***
+    ## prate         -0.021730   0.017367  -1.251  0.21203    
+    ## exper          0.018027   0.001826   9.873  < 2e-16 ***
+    ## rankassociate  0.132488   0.023595   5.615 5.25e-08 ***
+    ## rankfull       0.219399   0.026316   8.337 5.28e-15 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 0.1338 on 248 degrees of freedom
-    ## Multiple R-squared:  0.9339, Adjusted R-squared:  0.9307 
-    ## F-statistic: 291.8 on 12 and 248 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 0.1335 on 248 degrees of freedom
+    ## Multiple R-squared:  0.9343, Adjusted R-squared:  0.9311 
+    ## F-statistic: 293.9 on 12 and 248 DF,  p-value: < 2.2e-16
 
 ``` r
 par(mfrow = c(2,2))
 plot(full)
 ```
 
-![](EDA_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](EDA_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 ``` r
 HH::vif(full)
@@ -1099,121 +940,153 @@ maybe actually mediators.)
 ## stepwise(not sure if necessary)
 
 ``` r
-lower_gender <- lm(sal94 ~ gender, data = law_df) 
+lower_gender <- lm(log_ave_sal ~ gender, data = law_df) 
 step(full,scope = list(lower = lower_gender))
 ```
 
-    ## Start:  AIC=-1037.13
-    ## sal94 ~ gender + dept + clin + cert + prate + exper + rank
+    ## Start:  AIC=-1038.3
+    ## log_ave_sal ~ gender + dept + clin + cert + prate + exper + rank
     ## 
     ##         Df Sum of Sq     RSS      AIC
-    ## - prate  1    0.0288  4.4713 -1037.45
-    ## <none>                4.4425 -1037.13
-    ## - clin   1    0.2719  4.7143 -1023.63
-    ## - rank   2    1.2528  5.6952  -976.30
-    ## - cert   1    1.4736  5.9161  -964.37
-    ## - exper  1    1.7301  6.1726  -953.29
-    ## - dept   5    9.2120 13.6544  -754.07
+    ## - prate  1    0.0279  4.4506 -1038.66
+    ## <none>                4.4226 -1038.30
+    ## - clin   1    0.2858  4.7085 -1023.96
+    ## - rank   2    1.2646  5.6872  -976.66
+    ## - cert   1    1.4402  5.8628  -966.73
+    ## - exper  1    1.7384  6.1610  -953.78
+    ## - dept   5    9.1712 13.5938  -755.23
     ## 
-    ## Step:  AIC=-1037.45
-    ## sal94 ~ gender + dept + clin + cert + exper + rank
+    ## Step:  AIC=-1038.66
+    ## log_ave_sal ~ gender + dept + clin + cert + exper + rank
     ## 
     ##         Df Sum of Sq     RSS      AIC
-    ## <none>                4.4713 -1037.45
-    ## - rank   2    1.2971  5.7683  -974.97
-    ## - cert   1    1.4591  5.9303  -965.74
-    ## - clin   1    1.5676  6.0389  -961.01
-    ## - exper  1    1.7013  6.1726  -955.29
-    ## - dept   5   21.7617 26.2329  -585.65
+    ## <none>                4.4506 -1038.66
+    ## - rank   2    1.3087  5.7592  -975.38
+    ## - cert   1    1.4260  5.8766  -968.12
+    ## - clin   1    1.6198  6.0704  -959.65
+    ## - exper  1    1.7105  6.1611  -955.78
+    ## - dept   5   21.7719 26.2225  -585.75
 
     ## 
     ## Call:
-    ## lm(formula = sal94 ~ gender + dept + clin + cert + exper + rank, 
-    ##     data = law_df)
+    ## lm(formula = log_ave_sal ~ gender + dept + clin + cert + exper + 
+    ##     rank, data = law_df)
     ## 
     ## Coefficients:
     ##   (Intercept)   genderFemale        deptphy       deptgene      deptpedia  
-    ##      10.95612       -0.02721       -0.17643        0.18704        0.19938  
+    ##      11.00154       -0.02576       -0.17575        0.18597        0.20335  
     ##       deptmed        deptsur   clinclinical  certcertified          exper  
-    ##       0.53960        0.93158        0.20495        0.19194        0.01768  
+    ##       0.53930        0.93382        0.20834        0.18975        0.01773  
     ## rankassociate       rankfull  
-    ##       0.13326        0.22140
+    ##       0.13466        0.22221
 
 ``` r
-model_stepwise <- lm(formula = sal94 ~ gender + dept + clin + cert + exper + rank, data = law_df) %>% summary()
+model_stepwise <- lm(log_ave_sal ~ gender + dept + clin + cert + exper + rank, data = law_df) 
+summary(model_stepwise )
 ```
+
+    ## 
+    ## Call:
+    ## lm(formula = log_ave_sal ~ gender + dept + clin + cert + exper + 
+    ##     rank, data = law_df)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -0.34605 -0.07696 -0.01873  0.07596  0.90393 
+    ## 
+    ## Coefficients:
+    ##                Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)   11.001536   0.031160 353.069  < 2e-16 ***
+    ## genderFemale  -0.025763   0.019624  -1.313     0.19    
+    ## deptphy       -0.175749   0.029122  -6.035 5.73e-09 ***
+    ## deptgene       0.185970   0.036501   5.095 6.90e-07 ***
+    ## deptpedia      0.203345   0.035712   5.694 3.48e-08 ***
+    ## deptmed        0.539304   0.029515  18.272  < 2e-16 ***
+    ## deptsur        0.933820   0.035533  26.280  < 2e-16 ***
+    ## clinclinical   0.208340   0.021885   9.520  < 2e-16 ***
+    ## certcertified  0.189749   0.021244   8.932  < 2e-16 ***
+    ## exper          0.017726   0.001812   9.783  < 2e-16 ***
+    ## rankassociate  0.134663   0.023557   5.716 3.10e-08 ***
+    ## rankfull       0.222214   0.026249   8.466 2.22e-15 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 0.1337 on 249 degrees of freedom
+    ## Multiple R-squared:  0.9339, Adjusted R-squared:  0.931 
+    ## F-statistic: 319.7 on 11 and 249 DF,  p-value: < 2.2e-16
 
 ## 3.2 with some interaction
 
 ``` r
-lm(sal94 ~ dept + clin + cert  +  exper + gender*rank, data = law_df) %>% summary()
+inter1 <- lm(log_ave_sal ~ gender + dept +clin + cert  +  gender*exper + gender*rank,data = law_df) 
+summary(inter1 )
 ```
 
     ## 
     ## Call:
-    ## lm(formula = sal94 ~ dept + clin + cert + exper + gender * rank, 
-    ##     data = law_df)
+    ## lm(formula = log_ave_sal ~ gender + dept + clin + cert + gender * 
+    ##     exper + gender * rank, data = law_df)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -0.32349 -0.08234 -0.01600  0.07937  0.86050 
+    ## -0.31795 -0.07929 -0.01275  0.07078  0.85987 
     ## 
     ## Coefficients:
     ##                             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)                10.988933   0.033579 327.255  < 2e-16 ***
-    ## deptphy                    -0.176223   0.028926  -6.092 4.25e-09 ***
-    ## deptgene                    0.185648   0.036275   5.118 6.21e-07 ***
-    ## deptpedia                   0.204541   0.035596   5.746 2.68e-08 ***
-    ## deptmed                     0.543522   0.029420  18.475  < 2e-16 ***
-    ## deptsur                     0.929067   0.035334  26.294  < 2e-16 ***
-    ## clinclinical                0.193412   0.022217   8.706 4.58e-16 ***
-    ## certcertified               0.193520   0.021403   9.042  < 2e-16 ***
-    ## exper                       0.018131   0.001809  10.022  < 2e-16 ***
-    ## genderFemale               -0.076754   0.027620  -2.779  0.00587 ** 
-    ## rankassociate               0.088260   0.031348   2.816  0.00526 ** 
-    ## rankfull                    0.175287   0.031788   5.514 8.81e-08 ***
-    ## genderFemale:rankassociate  0.083695   0.044835   1.867  0.06312 .  
-    ## genderFemale:rankfull       0.107755   0.046743   2.305  0.02198 *  
+    ## (Intercept)                11.039463   0.033350 331.021  < 2e-16 ***
+    ## genderFemale               -0.133412   0.038125  -3.499 0.000554 ***
+    ## deptphy                    -0.166053   0.028962  -5.733 2.87e-08 ***
+    ## deptgene                    0.188370   0.035963   5.238 3.49e-07 ***
+    ## deptpedia                   0.219621   0.035606   6.168 2.82e-09 ***
+    ## deptmed                     0.548131   0.029218  18.760  < 2e-16 ***
+    ## deptsur                     0.939254   0.035170  26.706  < 2e-16 ***
+    ## clinclinical                0.205465   0.022327   9.203  < 2e-16 ***
+    ## certcertified               0.181479   0.021644   8.385 3.97e-15 ***
+    ## exper                       0.016378   0.001965   8.334 5.54e-15 ***
+    ## rankassociate               0.101222   0.031438   3.220 0.001456 ** 
+    ## rankfull                    0.198141   0.032888   6.025 6.14e-09 ***
+    ## genderFemale:exper          0.010471   0.004719   2.219 0.027410 *  
+    ## genderFemale:rankassociate  0.040275   0.048384   0.832 0.405994    
+    ## genderFemale:rankfull       0.018879   0.060486   0.312 0.755215    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 0.1328 on 247 degrees of freedom
-    ## Multiple R-squared:  0.9352, Adjusted R-squared:  0.9317 
-    ## F-statistic:   274 on 13 and 247 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 0.1315 on 246 degrees of freedom
+    ## Multiple R-squared:  0.9368, Adjusted R-squared:  0.9332 
+    ## F-statistic: 260.5 on 14 and 246 DF,  p-value: < 2.2e-16
 
 ``` r
-lm(sal94 ~ gender + dept + clin + cert  + gender*exper + gender*rank, data = law_df) %>% summary()
+inter2 <- lm(log_ave_sal ~ gender + dept +clin + cert  +  gender*exper + rank,data = law_df) 
+summary(inter2)
 ```
 
     ## 
     ## Call:
-    ## lm(formula = sal94 ~ gender + dept + clin + cert + gender * exper + 
-    ##     gender * rank, data = law_df)
+    ## lm(formula = log_ave_sal ~ gender + dept + clin + cert + gender * 
+    ##     exper + rank, data = law_df)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -0.31503 -0.07918 -0.01018  0.07512  0.85372 
+    ## -0.32130 -0.07860 -0.00987  0.07100  0.86910 
     ## 
     ## Coefficients:
-    ##                             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)                10.994414   0.033434 328.840  < 2e-16 ***
-    ## genderFemale               -0.133930   0.038222  -3.504 0.000544 ***
-    ## deptphy                    -0.167016   0.029036  -5.752 2.61e-08 ***
-    ## deptgene                    0.189333   0.036053   5.251 3.27e-07 ***
-    ## deptpedia                   0.215362   0.035696   6.033 5.87e-09 ***
-    ## deptmed                     0.548302   0.029292  18.719  < 2e-16 ***
-    ## deptsur                     0.936699   0.035259  26.567  < 2e-16 ***
-    ## clinclinical                0.201594   0.022383   9.007  < 2e-16 ***
-    ## certcertified               0.184075   0.021699   8.483 2.07e-15 ***
-    ## exper                       0.016391   0.001970   8.320 6.10e-15 ***
-    ## rankassociate               0.098955   0.031517   3.140 0.001898 ** 
-    ## rankfull                    0.195788   0.032971   5.938 9.77e-09 ***
-    ## genderFemale:exper          0.010159   0.004731   2.147 0.032748 *  
-    ## genderFemale:rankassociate  0.042298   0.048507   0.872 0.384053    
-    ## genderFemale:rankfull       0.023938   0.060639   0.395 0.693358    
+    ##                    Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)        11.03226    0.03197 345.034  < 2e-16 ***
+    ## genderFemale       -0.12893    0.03691  -3.493 0.000566 ***
+    ## deptphy            -0.16507    0.02875  -5.741 2.75e-08 ***
+    ## deptgene            0.18977    0.03583   5.297 2.60e-07 ***
+    ## deptpedia           0.21860    0.03534   6.185 2.54e-09 ***
+    ## deptmed             0.54677    0.02905  18.825  < 2e-16 ***
+    ## deptsur             0.93983    0.03491  26.924  < 2e-16 ***
+    ## clinclinical        0.20817    0.02147   9.696  < 2e-16 ***
+    ## certcertified       0.18217    0.02097   8.688 5.09e-16 ***
+    ## exper               0.01605    0.00185   8.672 5.64e-16 ***
+    ## rankassociate       0.11823    0.02365   5.000 1.09e-06 ***
+    ## rankfull            0.20804    0.02611   7.967 5.90e-14 ***
+    ## genderFemale:exper  0.01173    0.00358   3.276 0.001204 ** 
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 0.1318 on 246 degrees of freedom
-    ## Multiple R-squared:  0.9363, Adjusted R-squared:  0.9327 
-    ## F-statistic: 258.5 on 14 and 246 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 0.1312 on 248 degrees of freedom
+    ## Multiple R-squared:  0.9366, Adjusted R-squared:  0.9336 
+    ## F-statistic: 305.4 on 12 and 248 DF,  p-value: < 2.2e-16
