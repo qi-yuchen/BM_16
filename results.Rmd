@@ -2,7 +2,7 @@
 title: "results"
 author: "Qi Yuchen"
 date: "2019/12/11"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -61,11 +61,9 @@ df_sal = df %>%
 
 ## distribution of the outcome
 
-
 From the distribution of average salary we applied log transformation to the response variable.
 
 ## table1(covariates and outcome by gender)
-
 
 ## visualizing the relationship between response variable and predictor variables by gender
 
@@ -108,8 +106,6 @@ As the magtitude of each coefficient change is around or larger than 10%, all co
 ### Use VIF to see collinearity
 
 ```{r}
-
-
 full = lm(log_sal ~ ., data = df_sal)
 
 vif(full)
@@ -257,20 +253,31 @@ df_exper  %>%
 # Model diagnostics
 
 ```{r}
-plot(fit_int)
-plot(lm(log_sal ~gender+dept+clin+cert+exper+rank*gender+gender*exper, data = df_sal))
+final_model = lm(log_sal ~gender+dept+clin+cert+exper+rank, data = df_sal)
+par(mfrow = c(2,2))
+plot(final_model)
+```
 
-stu_res<-rstandard(fit_int)
+# Outliers/influential points
+
+```{r}
+stu_res<-rstandard(final_model)
 stu_res[abs(stu_res)>2.5]
 
-influence.measures(fit_int) %>% 
+influence.measures(final_model) %>% 
   summary()
 
+df[184,]
+```
 
+Using studentized residuals, id 184 is an outlier in Y. using leverage values, 19 and 216 are outliers in X. Using DFFIT, 8, 184 and 216 are influential points. Using main effects only, 184 is influential.
+
+```{r}
+# consider the data without influential points
 df_sal_noinflu = df_sal[-184, ]
-df_sal_noinflu = df_sal_noinflu[-58, ]
-df_sal_noinflu = df_sal_noinflu[-216, ]
-plot(lm(log_sal ~gender+dept+clin+cert+exper+rank*gender+gender*exper, data = df_sal_noinflu))
+
+par(mfrow = c(2,2))
+plot(final_model)
 temp = lm(log_sal ~gender+dept+clin+cert+exper+rank*gender+gender*exper, data = df_sal_noinflu)
 summary(temp)
 
@@ -292,7 +299,18 @@ stratified_exper_noinflu = df_exper_noinflu %>%
       coef =  lm(log_sal ~ gender + dept + clin + cert + rank)$coef["gendermale"],
       p = summary(lm(log_sal ~ gender + dept + clin + cert + rank))$coefficients["gendermale",4]
             )
-stratified_exper %>% 
+stratified_exper_noinflu %>% 
+    knitr::kable()
+
+stratified_rank_noinflu = df_sal_noinflu %>%
+  group_by(rank) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal ~ gender + dept + clin + cert + exper)$coef["gendermale"],
+      p = summary(lm(log_sal ~ gender + dept + clin + cert + exper))$coefficients["gendermale",4]
+            )
+stratified_rank_noinflu %>% 
     knitr::kable()
 ```
 
+Not significant now, -184 usinf main effects model or -216, -184, -8 using interaction model.

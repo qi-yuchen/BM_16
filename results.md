@@ -655,66 +655,78 @@ df_exper  %>%
 # Model diagnostics
 
 ``` r
-plot(fit_int)
+final_model = lm(log_sal ~gender+dept+clin+cert+exper+rank, data = df_sal)
+par(mfrow = c(2,2))
+plot(final_model)
 ```
 
-<img src="results_files/figure-gfm/unnamed-chunk-9-1.png" width="90%" /><img src="results_files/figure-gfm/unnamed-chunk-9-2.png" width="90%" /><img src="results_files/figure-gfm/unnamed-chunk-9-3.png" width="90%" /><img src="results_files/figure-gfm/unnamed-chunk-9-4.png" width="90%" />
+<img src="results_files/figure-gfm/unnamed-chunk-9-1.png" width="90%" />
+
+# Outliers/influential points
 
 ``` r
-plot(lm(log_sal ~gender+dept+clin+cert+exper+rank*gender+gender*exper, data = df_sal))
-```
-
-<img src="results_files/figure-gfm/unnamed-chunk-9-5.png" width="90%" /><img src="results_files/figure-gfm/unnamed-chunk-9-6.png" width="90%" /><img src="results_files/figure-gfm/unnamed-chunk-9-7.png" width="90%" /><img src="results_files/figure-gfm/unnamed-chunk-9-8.png" width="90%" />
-
-``` r
-stu_res<-rstandard(fit_int)
+stu_res<-rstandard(final_model)
 stu_res[abs(stu_res)>2.5]
 ```
 
-    ##       122       184 
-    ## -2.503652  6.845311
+    ##        82       122       184 
+    ## -2.507753 -2.640742  6.960085
 
 ``` r
-influence.measures(fit_int) %>% 
+influence.measures(final_model) %>% 
   summary()
 ```
 
     ## Potentially influential observations of
-    ##   lm(formula = log_sal ~ gender + dept + clin + cert + exper +      rank + gender * exper, data = df_sal) :
+    ##   lm(formula = log_sal ~ gender + dept + clin + cert + exper +      rank, data = df_sal) :
     ## 
     ##     dfb.1_ dfb.gndr dfb.dptPh dfb.dptG dfb.dptPd dfb.dptM dfb.dptS
-    ## 19   0.01   0.03     0.02      0.02     0.01      0.01     0.01   
-    ## 58  -0.13  -0.12     0.29      0.08     0.07      0.08     0.04   
-    ## 91   0.01   0.00     0.00     -0.03     0.00     -0.01     0.00   
-    ## 109  0.00   0.00     0.00      0.02     0.00      0.00     0.00   
-    ## 122 -0.20   0.16     0.05      0.05    -0.23      0.08     0.07   
-    ## 184 -0.87   0.93     0.28      0.18     0.60      1.03_*   0.55   
-    ## 216  0.54  -0.39    -0.13     -0.11    -0.21     -0.34    -0.23   
-    ##     dfb.clnr dfb.crt_ dfb.expr dfb.rnks dfb.rnkf dfb.gnd: dffit   cov.r  
-    ## 19   0.00    -0.03    -0.03     0.01     0.07    -0.04    -0.14    1.26_*
-    ## 58   0.13    -0.11     0.13    -0.02    -0.35     0.17     0.73_*  1.01  
-    ## 91  -0.01     0.01     0.00     0.00     0.00    -0.01    -0.03    1.16_*
-    ## 109  0.01    -0.01     0.00     0.01     0.00     0.00     0.03    1.16_*
-    ## 122  0.11     0.03     0.14     0.06     0.02    -0.15    -0.53    0.79_*
-    ## 184  0.92     0.89     0.37    -0.63    -0.36    -0.64     1.97_*  0.07_*
-    ## 216 -0.26    -0.03    -0.65     0.14     0.03     0.62    -0.80_*  1.12  
-    ##     cook.d hat    
-    ## 19   0.00   0.17_*
-    ## 58   0.04   0.13  
-    ## 91   0.00   0.09  
-    ## 109  0.00   0.09  
-    ## 122  0.02   0.04  
-    ## 184  0.24   0.06  
-    ## 216  0.05   0.19_*
+    ## 19   0.08  -0.01     0.04      0.04     0.00      0.03     0.03   
+    ## 82   0.01   0.07    -0.31      0.00    -0.05     -0.08    -0.11   
+    ## 91   0.04  -0.01    -0.01     -0.08    -0.02     -0.02    -0.01   
+    ## 109  0.00  -0.02     0.00      0.05     0.00      0.01     0.01   
+    ## 122 -0.14   0.07     0.03      0.04    -0.27      0.08     0.06   
+    ## 184 -0.62   0.75     0.22      0.16     0.53      1.00     0.53   
+    ## 208  0.06  -0.19    -0.01     -0.01    -0.04      0.11    -0.02   
+    ##     dfb.clnr dfb.crt_ dfb.expr dfb.rnks dfb.rnkf dffit   cov.r   cook.d
+    ## 19  -0.01    -0.09    -0.26     0.05     0.17    -0.30    1.21_*  0.01 
+    ## 82  -0.13    -0.18     0.08     0.12     0.07    -0.54    0.81_*  0.02 
+    ## 91  -0.04     0.03    -0.04     0.02     0.01    -0.10    1.15_*  0.00 
+    ## 109  0.02    -0.03     0.00     0.03     0.00     0.07    1.15_*  0.00 
+    ## 122  0.11     0.02     0.02     0.10     0.05    -0.54    0.78_*  0.02 
+    ## 184  0.94     0.84    -0.36    -0.51    -0.26     1.89_*  0.08_*  0.24 
+    ## 208 -0.06    -0.04     0.21    -0.14    -0.18     0.43    0.81_*  0.02 
+    ##     hat    
+    ## 19   0.15_*
+    ## 82   0.04  
+    ## 91   0.09  
+    ## 109  0.09  
+    ## 122  0.04  
+    ## 184  0.06  
+    ## 208  0.03
 
 ``` r
-df_sal_noinflu = df_sal[-184, ]
-df_sal_noinflu = df_sal_noinflu[-58, ]
-df_sal_noinflu = df_sal_noinflu[-216, ]
-plot(lm(log_sal ~gender+dept+clin+cert+exper+rank*gender+gender*exper, data = df_sal_noinflu))
+df[184,]
 ```
 
-<img src="results_files/figure-gfm/unnamed-chunk-9-9.png" width="90%" /><img src="results_files/figure-gfm/unnamed-chunk-9-10.png" width="90%" /><img src="results_files/figure-gfm/unnamed-chunk-9-11.png" width="90%" /><img src="results_files/figure-gfm/unnamed-chunk-9-12.png" width="90%" />
+    ## # A tibble: 1 x 11
+    ##      id dept   gender clin   cert    prate exper rank   sal94  sal95    sal
+    ##   <dbl> <fct>  <fct>  <fct>  <fct>   <dbl> <dbl> <fct>  <dbl>  <dbl>  <dbl>
+    ## 1   184 Medic~ male   resea~ not_ce~   5.1     2 assi~ 250000 276163 2.63e5
+
+Using studentized residuals, id 184 is an outlier in Y. using leverage
+values, 19 and 216 are outliers in X. Using DFFIT, 8, 184 and 216 are
+influential points. Using main effects only, 184 is influential.
+
+``` r
+# consider the data without influential points
+df_sal_noinflu = df_sal[-184, ]
+
+par(mfrow = c(2,2))
+plot(final_model)
+```
+
+<img src="results_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />
 
 ``` r
 temp = lm(log_sal ~gender+dept+clin+cert+exper+rank*gender+gender*exper, data = df_sal_noinflu)
@@ -728,31 +740,31 @@ summary(temp)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -0.32974 -0.06974 -0.01115  0.07829  0.27967 
+    ## -0.32895 -0.07173 -0.01277  0.08089  0.28179 
     ## 
     ## Coefficients:
     ##                           Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)              11.325813   0.039178 289.083  < 2e-16 ***
-    ## gendermale                0.106622   0.034755   3.068   0.0024 ** 
-    ## deptPhysiology           -0.179548   0.026352  -6.813 7.45e-11 ***
-    ## deptGenetics              0.181255   0.032422   5.590 6.07e-08 ***
-    ## deptPediatrics            0.199286   0.032175   6.194 2.49e-09 ***
-    ## deptMedicine              0.520412   0.026828  19.398  < 2e-16 ***
-    ## deptSurgery               0.923406   0.031831  29.010  < 2e-16 ***
-    ## clinresearch             -0.228652   0.020629 -11.084  < 2e-16 ***
-    ## certnot_certified        -0.194842   0.019718  -9.882  < 2e-16 ***
-    ## exper                     0.026677   0.003875   6.884 4.94e-11 ***
-    ## rankassociate             0.140773   0.033634   4.185 3.98e-05 ***
-    ## rankfull                  0.212790   0.044231   4.811 2.64e-06 ***
-    ## gendermale:rankassociate -0.012860   0.044351  -0.290   0.7721    
-    ## gendermale:rankfull       0.015474   0.055071   0.281   0.7790    
-    ## gendermale:exper         -0.010871   0.004302  -2.527   0.0121 *  
+    ## (Intercept)              11.324438   0.039263 288.429  < 2e-16 ***
+    ## gendermale                0.100527   0.034725   2.895  0.00413 ** 
+    ## deptPhysiology           -0.172382   0.026182  -6.584 2.77e-10 ***
+    ## deptGenetics              0.183611   0.032499   5.650 4.45e-08 ***
+    ## deptPediatrics            0.200148   0.032276   6.201 2.36e-09 ***
+    ## deptMedicine              0.520522   0.026654  19.529  < 2e-16 ***
+    ## deptSurgery               0.922849   0.031852  28.973  < 2e-16 ***
+    ## clinresearch             -0.225913   0.020356 -11.098  < 2e-16 ***
+    ## certnot_certified        -0.198053   0.019681 -10.063  < 2e-16 ***
+    ## exper                     0.026606   0.003887   6.845 6.11e-11 ***
+    ## rankassociate             0.138212   0.033015   4.186 3.95e-05 ***
+    ## rankfull                  0.213618   0.044342   4.817 2.55e-06 ***
+    ## gendermale:rankassociate -0.011198   0.043888  -0.255  0.79882    
+    ## gendermale:rankfull       0.002157   0.054723   0.039  0.96858    
+    ## gendermale:exper         -0.009676   0.004265  -2.269  0.02416 *  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 0.1183 on 243 degrees of freedom
-    ## Multiple R-squared:  0.9491, Adjusted R-squared:  0.9462 
-    ## F-statistic: 323.9 on 14 and 243 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 0.1188 on 245 degrees of freedom
+    ## Multiple R-squared:  0.9483, Adjusted R-squared:  0.9454 
+    ## F-statistic: 321.2 on 14 and 245 DF,  p-value: < 2.2e-16
 
 ``` r
 df_exper_noinflu = df_sal_noinflu %>%
@@ -773,13 +785,34 @@ stratified_exper_noinflu = df_exper_noinflu %>%
       coef =  lm(log_sal ~ gender + dept + clin + cert + rank)$coef["gendermale"],
       p = summary(lm(log_sal ~ gender + dept + clin + cert + rank))$coefficients["gendermale",4]
             )
-stratified_exper %>% 
+stratified_exper_noinflu %>% 
     knitr::kable()
 ```
 
 | exper |  n |        coef |         p |
 | :---- | -: | ----------: | --------: |
-| 0     | 64 |   0.1257741 | 0.0238410 |
+| 0     | 63 |   0.0577437 | 0.2066119 |
 | 1     | 57 |   0.0340942 | 0.2757676 |
 | 2     | 74 | \-0.0005508 | 0.9876466 |
 | 3     | 66 | \-0.0034961 | 0.9439975 |
+
+``` r
+stratified_rank_noinflu = df_sal_noinflu %>%
+  group_by(rank) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal ~ gender + dept + clin + cert + exper)$coef["gendermale"],
+      p = summary(lm(log_sal ~ gender + dept + clin + cert + exper))$coefficients["gendermale",4]
+            )
+stratified_rank_noinflu %>% 
+    knitr::kable()
+```
+
+| rank      |   n |        coef |         p |
+| :-------- | --: | ----------: | --------: |
+| assistant | 111 |   0.0390298 | 0.2009195 |
+| associate |  64 | \-0.0132771 | 0.6702516 |
+| full      |  85 | \-0.0404129 | 0.2680458 |
+
+Not significant now, -184 usinf main effects model or -216, -184, -8
+using interaction model.
