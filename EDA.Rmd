@@ -11,6 +11,9 @@ library(tidyverse)
 library(DataExplorer)
 library(broom)
 library(arsenal)
+library(ggpubr)
+theme_set(theme_minimal() +  theme(plot.title = element_text(hjust = 0.5))) 
+
 ```
 
 # clean data
@@ -74,7 +77,8 @@ law_df %>%
                 data = .,
                 control = control_table) %>% 
         summary(text = TRUE) %>% 
-        kableExtra::kable(caption = "Characcteristics of college faculty") 
+        kableExtra::kable(caption = "Characcteristics of college faculty")
+
 ```
 
 The `clin` and `cert` has a p-value >0.05 (but < 0.20), suggesting that the composition of  `clin` and `cert` are not very different in female and male.
@@ -86,6 +90,44 @@ But still, we will check their impact on coefficient of female later.
 map(law_df[,c(1:4,7)], 
     ~ggplot(aes(y = log_ave_sal,x = .x, fill = gender),data = law_df) + geom_boxplot()) %>% 
     cowplot::plot_grid(plotlist = .,ncol = 2,labels = colnames(law_df[,c(1:4,7)]))
+
+dept_plot <- 
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = dept, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Department",y = "")
+
+clin_plot <- 
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = clin, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Primary emphasis",y = "")
+
+cert_plot <- 
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = cert, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Board certification", y = "")
+
+rank_plot <- 
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = rank, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Rank",y = "")
+
+gender_plot <- 
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = gender, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Gender",y = "")
+
+figure_catg <- ggpubr::ggarrange(dept_plot,clin_plot,cert_plot,rank_plot,gender_plot,
+                  common.legend = T,ncol = 2, nrow = 3,legend = "bottom")
+
+# Annotate the figure by adding a common labels
+annotate_figure(figure_catg,
+                top = text_grob("Salary Distribution",face = "bold", size = 14),
+                left = text_grob("log(avarage salary)",rot = 90))
 ```
 
 I want yo draw your attention to the `rank` plot. 
@@ -98,6 +140,23 @@ map(law_df[,5:6],
             geom_point() + 
             geom_smooth(method = "lm",se = F)) %>%
     cowplot::plot_grid(plotlist = .,ncol = 1,labels = colnames(law_df[,5:6]))
+
+prate_plot <-
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = prate, color = gender)) + 
+    geom_point() + 
+    geom_smooth(method = "lm",se = F) + 
+    labs(title = "Salary vs Publication rate", x = "Publication rate" , y = "log(avarage salary)")
+
+
+exper_plot <-
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = exper, color = gender)) + 
+    geom_point() + 
+    geom_smooth(method = "lm",se = F) +
+    labs(title = "Salary vs Experience", x = "Years since obtaining MD", y = "log(avarage salary)")
+
+ggarrange(prate_plot,exper_plot,ncol = 1,common.legend = T, legend = "bottom")
 ```
 
 We see a non-parallel(slightly) slope of `exper`, so we may consider interaction term in our model. 
@@ -134,6 +193,9 @@ summary(full)
 par(mfrow = c(2,2))
 plot(full)
 HH::vif(full)
+
+full <- lm(log_ave_sal ~ gender + dept + clin + cert  + exper + rank, data = law_df) 
+
 ```
 
 Ah. May be... there is no "obvious" discrimination. (coz these confouders maybe actually mediators.)
@@ -149,11 +211,23 @@ summary(model_stepwise )
 ## 3.2  with some interaction
 ```{r}
 inter1 <- lm(log_ave_sal ~ gender + dept +clin + cert  +  gender*exper + gender*rank,data = law_df) 
+
 summary(inter1 )
 
 inter2 <- lm(log_ave_sal ~ gender + dept +clin + cert  +  gender*exper + rank,data = law_df) 
 summary(inter2)
 
+lm(log_ave_sal ~ gender + dept +clin + cert  +  gender*exper + rank,data = law_df) %>% summary()
+lm(log_ave_sal ~ gender + dept +clin + cert  +  gender*exper + rank,data = law_df[-184,]) %>% summary()
+
+ lm(log_ave_sal ~ gender + dept +clin + cert  +  exper ,data = law_df %>% filter(rank == "assistant")) %>% summary()
+ 
+a <- lm(log_ave_sal ~ gender + dept +clin + cert  +  rank ,data = law_df %>% filter(exper %in% c(0:6))) 
+par(mfrow = c(2,2))
+plot(inter2)
+
+summary(law_df$exper)
+hist(law_df$exper)
 ```
 
 
