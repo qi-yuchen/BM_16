@@ -934,6 +934,10 @@ HH::vif(full)
     ## rankassociate      rankfull 
     ##      1.508016      2.225837
 
+``` r
+full <- lm(log_ave_sal ~ gender + dept + clin + cert  + exper + rank, data = law_df) 
+```
+
 Ah. May be… there is no “obvious” discrimination. (coz these confouders
 maybe actually mediators.)
 
@@ -944,19 +948,7 @@ lower_gender <- lm(log_ave_sal ~ gender, data = law_df)
 step(full,scope = list(lower = lower_gender))
 ```
 
-    ## Start:  AIC=-1038.3
-    ## log_ave_sal ~ gender + dept + clin + cert + prate + exper + rank
-    ## 
-    ##         Df Sum of Sq     RSS      AIC
-    ## - prate  1    0.0279  4.4506 -1038.66
-    ## <none>                4.4226 -1038.30
-    ## - clin   1    0.2858  4.7085 -1023.96
-    ## - rank   2    1.2646  5.6872  -976.66
-    ## - cert   1    1.4402  5.8628  -966.73
-    ## - exper  1    1.7384  6.1610  -953.78
-    ## - dept   5    9.1712 13.5938  -755.23
-    ## 
-    ## Step:  AIC=-1038.66
+    ## Start:  AIC=-1038.66
     ## log_ave_sal ~ gender + dept + clin + cert + exper + rank
     ## 
     ##         Df Sum of Sq     RSS      AIC
@@ -1019,6 +1011,7 @@ summary(model_stepwise )
 
 ``` r
 inter1 <- lm(log_ave_sal ~ gender + dept +clin + cert  +  gender*exper + gender*rank,data = law_df) 
+
 summary(inter1 )
 ```
 
@@ -1090,3 +1083,126 @@ summary(inter2)
     ## Residual standard error: 0.1312 on 248 degrees of freedom
     ## Multiple R-squared:  0.9366, Adjusted R-squared:  0.9336 
     ## F-statistic: 305.4 on 12 and 248 DF,  p-value: < 2.2e-16
+
+``` r
+lm(log_ave_sal ~ gender + dept +clin + cert  +  gender*exper + rank,data = law_df) %>% summary()
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = log_ave_sal ~ gender + dept + clin + cert + gender * 
+    ##     exper + rank, data = law_df)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -0.32130 -0.07860 -0.00987  0.07100  0.86910 
+    ## 
+    ## Coefficients:
+    ##                    Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)        11.03226    0.03197 345.034  < 2e-16 ***
+    ## genderFemale       -0.12893    0.03691  -3.493 0.000566 ***
+    ## deptphy            -0.16507    0.02875  -5.741 2.75e-08 ***
+    ## deptgene            0.18977    0.03583   5.297 2.60e-07 ***
+    ## deptpedia           0.21860    0.03534   6.185 2.54e-09 ***
+    ## deptmed             0.54677    0.02905  18.825  < 2e-16 ***
+    ## deptsur             0.93983    0.03491  26.924  < 2e-16 ***
+    ## clinclinical        0.20817    0.02147   9.696  < 2e-16 ***
+    ## certcertified       0.18217    0.02097   8.688 5.09e-16 ***
+    ## exper               0.01605    0.00185   8.672 5.64e-16 ***
+    ## rankassociate       0.11823    0.02365   5.000 1.09e-06 ***
+    ## rankfull            0.20804    0.02611   7.967 5.90e-14 ***
+    ## genderFemale:exper  0.01173    0.00358   3.276 0.001204 ** 
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 0.1312 on 248 degrees of freedom
+    ## Multiple R-squared:  0.9366, Adjusted R-squared:  0.9336 
+    ## F-statistic: 305.4 on 12 and 248 DF,  p-value: < 2.2e-16
+
+``` r
+lm(log_ave_sal ~ gender + dept +clin + cert  +  gender*exper + rank,data = law_df[-184,]) %>% summary()
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = log_ave_sal ~ gender + dept + clin + cert + gender * 
+    ##     exper + rank, data = law_df[-184, ])
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -0.32984 -0.07244 -0.01281  0.08040  0.28101 
+    ## 
+    ## Coefficients:
+    ##                     Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)        10.999190   0.029181 376.926  < 2e-16 ***
+    ## genderFemale       -0.098036   0.033558  -2.921  0.00381 ** 
+    ## deptphy            -0.172456   0.025967  -6.641 1.96e-10 ***
+    ## deptgene            0.183945   0.032339   5.688 3.62e-08 ***
+    ## deptpedia           0.199326   0.031994   6.230 2.00e-09 ***
+    ## deptmed             0.519788   0.026450  19.652  < 2e-16 ***
+    ## deptsur             0.922498   0.031583  29.209  < 2e-16 ***
+    ## clinclinical        0.226087   0.019518  11.584  < 2e-16 ***
+    ## certcertified       0.199022   0.019052  10.446  < 2e-16 ***
+    ## exper               0.016903   0.001673  10.101  < 2e-16 ***
+    ## rankassociate       0.131614   0.021413   6.146 3.16e-09 ***
+    ## rankfull            0.216546   0.023590   9.179  < 2e-16 ***
+    ## genderFemale:exper  0.009676   0.003242   2.984  0.00313 ** 
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 0.1184 on 247 degrees of freedom
+    ## Multiple R-squared:  0.9483, Adjusted R-squared:  0.9458 
+    ## F-statistic: 377.6 on 12 and 247 DF,  p-value: < 2.2e-16
+
+``` r
+ lm(log_ave_sal ~ gender + dept +clin + cert  +  exper ,data = law_df %>% filter(rank == "assistant")) %>% summary()
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = log_ave_sal ~ gender + dept + clin + cert + exper, 
+    ##     data = law_df %>% filter(rank == "assistant"))
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -0.30995 -0.09230 -0.01370  0.07692  0.78854 
+    ## 
+    ## Coefficients:
+    ##                Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)   11.041404   0.067834 162.770  < 2e-16 ***
+    ## genderFemale  -0.082656   0.035347  -2.338 0.021316 *  
+    ## deptphy       -0.201314   0.063379  -3.176 0.001973 ** 
+    ## deptgene       0.143432   0.069186   2.073 0.040681 *  
+    ## deptpedia      0.255421   0.066715   3.829 0.000223 ***
+    ## deptmed        0.600806   0.061033   9.844  < 2e-16 ***
+    ## deptsur        0.943082   0.070044  13.464  < 2e-16 ***
+    ## clinclinical   0.179071   0.042166   4.247 4.80e-05 ***
+    ## certcertified  0.119828   0.040890   2.931 0.004176 ** 
+    ## exper          0.024735   0.005354   4.620 1.12e-05 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 0.1541 on 102 degrees of freedom
+    ## Multiple R-squared:  0.9126, Adjusted R-squared:  0.9049 
+    ## F-statistic: 118.3 on 9 and 102 DF,  p-value: < 2.2e-16
+
+``` r
+a <- lm(log_ave_sal ~ gender + dept +clin + cert  +  rank ,data = law_df %>% filter(exper %in% c(0:6))) 
+par(mfrow = c(2,2))
+plot(inter2)
+```
+
+![](EDA_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+``` r
+summary(law_df$exper)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##    1.00    6.00    9.00   10.23   14.00   37.00
+
+``` r
+hist(law_df$exper)
+```
+
+![](EDA_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->
