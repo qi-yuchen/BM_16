@@ -93,7 +93,7 @@ law_df %>%
                 data = .,
                 control = control_table) %>% 
         summary(text = TRUE) %>% 
-        kableExtra::kable(caption = "Characcteristics of college faculty") 
+        kableExtra::kable(caption = "Characcteristics of college faculty")
 ```
 
 <table>
@@ -827,6 +827,48 @@ map(law_df[,c(1:4,7)],
 
 ![](EDA_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
+``` r
+dept_plot <- 
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = dept, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Department",y = "")
+
+clin_plot <- 
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = clin, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Primary emphasis",y = "")
+
+cert_plot <- 
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = cert, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Board certification", y = "")
+
+rank_plot <- 
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = rank, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Rank",y = "")
+
+gender_plot <- 
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = gender, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Gender",y = "")
+
+figure_catg <- ggpubr::ggarrange(dept_plot,clin_plot,cert_plot,rank_plot,gender_plot,
+                  common.legend = T,ncol = 2, nrow = 3,legend = "bottom")
+
+# Annotate the figure by adding a common labels
+annotate_figure(figure_catg,
+                top = text_grob("Salary Distribution",face = "bold", size = 14),
+                left = text_grob("log(avarage salary)",rot = 90))
+```
+
+![](EDA_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->
+
 I want yo draw your attention to the `rank` plot. Seems that for male,
 salary doesn’t change that much from assistant to full professor. But
 for female, it changes a lot.
@@ -842,6 +884,27 @@ map(law_df[,5:6],
 ```
 
 ![](EDA_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+``` r
+prate_plot <-
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = prate, color = gender)) + 
+    geom_point() + 
+    geom_smooth(method = "lm",se = F) + 
+    labs(title = "Salary vs Publication rate", x = "Publication rate" , y = "log(avarage salary)")
+
+
+exper_plot <-
+    law_df %>% 
+    ggplot(aes(y = log_ave_sal,x = exper, color = gender)) + 
+    geom_point() + 
+    geom_smooth(method = "lm",se = F) +
+    labs(title = "Salary vs Experience", x = "Years since obtaining MD", y = "log(avarage salary)")
+
+ggarrange(prate_plot,exper_plot,ncol = 1,common.legend = T, legend = "bottom")
+```
+
+![](EDA_files/figure-gfm/unnamed-chunk-5-2.png)<!-- -->
 
 We see a non-parallel(slightly) slope of `exper`, so we may consider
 interaction term in our model.
