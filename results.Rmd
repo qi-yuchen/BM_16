@@ -17,6 +17,7 @@ library(purrr)
 library(DataExplorer)
 library(broom)
 library(arsenal)
+library(ggpubr)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -26,15 +27,8 @@ knitr::opts_chunk$set(
   out.width = "90%"
 )
 
-options(
-  ggplot2.continuous.colour = "viridis",
-  ggplot2.continuous.fill = "viridis"
-)
+theme_set(theme_minimal() + theme(legend.position = "bottom") + theme(plot.title = element_text(hjust = 0.5)))
 
-scale_colour_discrete = scale_colour_viridis_d
-scale_fill_discrete = scale_fill_viridis_d
-
-theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
 
 # Data cleaning
@@ -44,11 +38,11 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 df = read_csv("Lawsuit.csv") %>% 
   janitor::clean_names() %>% 
   mutate(dept = factor(dept, levels = c(1:6), labels = c("Biochemistry/Molecular Biology", "Physiology ", "Genetics", "Pediatrics", "Medicine", "Surgery")),
-         gender = factor(gender, levels = c(0, 1), labels = c("female","male")),
-         clin = factor(clin, levels = c(1, 0), labels = c("clinical","research")),
-         cert = factor(cert, levels = c(1, 0), labels = c("certified","not_certified")),
-         rank = factor(rank, levels = c(1, 2, 3), labels = c("assistant", "associate", "full")),
-         sal = (sal94 + sal95)/2)
+         gender = factor(gender, levels = c(0, 1), labels = c("Female","Male")),
+         clin = factor(clin, levels = c(1, 0), labels = c("Clinical","Research")),
+         cert = factor(cert, levels = c(1, 0), labels = c("Certified","Not certified")),
+         rank = factor(rank, levels = c(1, 2, 3), labels = c("Assistant", "Associate", "Full professor")),
+         sal = (sal94 + sal95)/2) 
 
 # consider log mean sal only 
 df_sal = df %>%   
@@ -60,18 +54,135 @@ df_sal = df %>%
 # Data exploration
 
 ## distribution of the outcome
+```{r}
+hist_ave <-
+    df %>% 
+    ggplot(aes(x = sal, y = ..density..)) +
+    geom_histogram() + 
+    labs(title = "Distribution of Average Salary", x = "Average Salary" , y = "Density")
+
+qq_ave <-
+    df %>% 
+    ggplot(aes(sample = sal)) + 
+    stat_qq() +
+    stat_qq_line() + 
+    labs(title = "Normal Q-Q plot of Average Salary" , x = "Theoretical Quantiles", y = "Sample Quantiles")
+
+hist_trans <-
+    df_sal %>% 
+    ggplot(aes(x = log_sal, y = ..density..)) +
+    geom_histogram() + 
+    labs(title = "Distribution of Transformed Salary", x = "Transformed Salary", y = "Density")
+
+
+qq_trans <-
+    df_sal  %>% 
+    ggplot(aes(sample = log_sal)) + 
+    stat_qq() +
+    stat_qq_line() + 
+    labs(title = "Normal Q-Q plot of Transformed Salary" , x = "Theoretical Quantiles", y = "Sample Quantiles")
+
+ggarrange(hist_ave,hist_trans,qq_ave,qq_trans) %>% 
+    annotate_figure(top = text_grob("Salary Transformation",face = "bold", size = 14))
+```
 
 From the distribution of average salary we applied log transformation to the response variable.
 
 ## table1(covariates and outcome by gender)
+```{r}
+# descriptive statistics for variables of interest
+control_table <- tableby.control(
+        total = T,
+        test = F,
+        numeric.stats = c("meansd","medianq1q3","range"),
+        stats.labels = list(meansd = "Mean (SD)",
+                            medianq1q3 = "Median (Q1, Q3)",
+                            range = "Range"),
+        digits = 2
+        ) 
+
+my_labels <- list(
+  dept = "Department",
+  clin = "Primary emphasis",
+  cert = "Board certification",
+  prate = "Publication rate",
+  exper = "Experience",
+  rank = "Rank",
+  log_sal = "Log Salary"
+)
+
+tab1 <- 
+    df_sal %>% 
+    tableby(gender ~ .,
+            data = .,
+            control = control_table) %>% 
+    summary(text = TRUE,labelTranslations = my_labels, title = "Summary Statistic of Data by Gender")
+
+write2pdf(tab1, "table1.pdf")
+```
+
 
 ## visualizing the relationship between response variable and predictor variables by gender
+categorical
+```{r}
+dept_plot <- 
+    df_sal %>% 
+    ggplot(aes(y = log_sal,x = dept, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Department",y = "")
 
-see EDA
+clin_plot <- 
+    df_sal %>% 
+    ggplot(aes(y = log_sal,x = clin, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Primary emphasis",y = "")
+
+cert_plot <- 
+    df_sal %>% 
+    ggplot(aes(y = log_sal,x = cert, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Board certification", y = "")
+
+rank_plot <- 
+    df_sal %>% 
+    ggplot(aes(y = log_sal,x = rank, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Rank",y = "")
+
+gender_plot <- 
+    df_sal %>% 
+    ggplot(aes(y = log_sal,x = gender, fill = gender)) + 
+    geom_boxplot() + 
+    labs(x = "Gender",y = "")
+```
+
+continuous 
+```{r}
+prate_plot <-
+    df_sal %>% 
+    ggplot(aes(y = log_sal,x = prate, color = gender)) + 
+    geom_point() + 
+    geom_smooth(method = "lm",se = F) + 
+    labs(title = "Salary vs Publication rate", x = "Publication rate" , y = "")
 
 
+exper_plot <-
+    df_sal %>% 
+    ggplot(aes(y = log_sal,x = exper, color = gender)) + 
+    geom_point() + 
+    geom_smooth(method = "lm",se = F) +
+    labs(title = "Salary vs Experience", x = "Years since obtaining MD", y = "")
 
+figure_all <- ggarrange(dept_plot,clin_plot,cert_plot,rank_plot,gender_plot,prate_plot,exper_plot,
+                    common.legend = T,legend = "bottom")
 
+# Annotate the figure by adding a common labels
+annotate_figure(figure_all,
+                top = text_grob("Salary Comparison",face = "bold", size = 14),
+                left = text_grob("log(salary)",rot = 90))
+```
+
+We see a non-parallel(slightly) slope of `exper`, so we may consider interaction term in our model. 
 
 # Model
 
@@ -87,18 +198,17 @@ We check the adjusted and crude coefficients of gendermale.
 crude <- 
     lm(log_sal ~ gender, data = df_sal) %>% 
     broom::tidy() %>% 
-    filter(term == "gendermale") %>% 
+    filter(term == "genderMale") %>% 
     pull(estimate)
 
 adj <-
     df_sal %>% 
     dplyr::select(dept,clin,cert,prate,exper,rank) %>% 
     map(~lm(log_sal ~ gender + .x, data = df_sal) %>% broom::tidy()) %>% 
-    map_dbl(~filter(.x,term == "gendermale") %>% pull(estimate)) 
+    map_dbl(~filter(.x,term == "genderMale") %>% pull(estimate)) 
 
 change <- round(100*(crude - adj)/crude,digits = 2)
-change
-
+change 
 ```
 
 As the magtitude of each coefficient change is around or larger than 10%, all covariates may be confounders.Then we inlcude them all in the model.
@@ -128,7 +238,7 @@ Now each VIF < 5, which is good. F test also indicates no prate.
 ```{r}
 best_1 <- function(model, ...) 
 {
-  subsets <- regsubsets(formula(model), model.frame(model), method = "exhaustive", nvmax = NULL, force.in = "gendermale",  ...)
+  subsets <- regsubsets(formula(model), model.frame(model), method = "exhaustive", nvmax = NULL, force.in = "genderMale",  ...)
   subsets <- with(summary(subsets),
                   cbind(p = as.numeric(rownames(which)), which, rss, rsq, adjr2, cp, bic))
   
@@ -138,7 +248,7 @@ best_1 <- function(model, ...)
 
 best_1(full) 
 
-subsets = regsubsets(formula(full), model.frame(full), method = "exhaustive", nvmax = NULL, force.in = "gendermale")
+subsets = regsubsets(formula(full), model.frame(full), method = "exhaustive", nvmax = NULL, force.in = "genderMale")
 
 # add interaction
 
@@ -154,7 +264,7 @@ So is using criteria. If force in gender, the best is without prate. clin and ex
 
 ## interaction term (not sure whether to test)
 
-```{r}
+```{r results='asis'}
 ## general test 
 
 # no prate
@@ -178,8 +288,8 @@ stratified_dept = df_sal %>%
   group_by(dept) %>%
   summarize(
       n = n(),
-      coef =  lm(log_sal ~ gender+clin+cert+exper+rank)$coef["gendermale"],
-      p = summary(lm(log_sal ~ gender+clin+cert+exper+rank))$coefficients["gendermale",4]
+      coef =  lm(log_sal ~ gender+clin+cert+exper+rank)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender+clin+cert+exper+rank))$coefficients["genderMale",4]
             )
 stratified_dept %>% 
     knitr::kable()
@@ -189,9 +299,9 @@ stratified_clin = df_sal %>%
   summarize(
       n = n(),
       coef =  lm(log_sal ~ gender + dept + cert + exper + 
-    rank)$coef["gendermale"],
+    rank)$coef["genderMale"],
       p = summary(lm(log_sal ~ gender + dept + cert + exper + 
-    rank))$coefficients["gendermale",4]
+    rank))$coefficients["genderMale",4]
             )
 stratified_clin %>% 
     knitr::kable()
@@ -201,9 +311,9 @@ stratified_cert = df_sal %>%
   summarize(
       n = n(),
       coef =  lm(log_sal ~ gender + dept + clin + exper + 
-    rank)$coef["gendermale"],
+    rank)$coef["genderMale"],
       p = summary(lm(log_sal ~ gender + dept + clin + exper + 
-    rank))$coefficients["gendermale",4]
+    rank))$coefficients["genderMale",4]
             )
 stratified_cert %>% 
     knitr::kable()
@@ -212,8 +322,8 @@ stratified_rank = df_sal %>%
   group_by(rank) %>%
   summarize(
       n = n(),
-      coef =  lm(log_sal ~ gender + dept + clin + cert + exper)$coef["gendermale"],
-      p = summary(lm(log_sal ~ gender + dept + clin + cert + exper))$coefficients["gendermale",4]
+      coef =  lm(log_sal ~ gender + dept + clin + cert + exper)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender + dept + clin + cert + exper))$coefficients["genderMale",4]
             )
 stratified_rank %>% 
     knitr::kable()
@@ -236,8 +346,8 @@ stratified_exper = df_exper %>%
   group_by(exper) %>%
   summarize(
       n = n(),
-      coef =  lm(log_sal ~ gender + dept + clin + cert + rank)$coef["gendermale"],
-      p = summary(lm(log_sal ~ gender + dept + clin + cert + rank))$coefficients["gendermale",4]
+      coef =  lm(log_sal ~ gender + dept + clin + cert + rank)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender + dept + clin + cert + rank))$coefficients["genderMale",4]
             )
 stratified_exper %>% 
     knitr::kable()
@@ -296,8 +406,8 @@ stratified_exper_noinflu = df_exper_noinflu %>%
   group_by(exper) %>%
   summarize(
       n = n(),
-      coef =  lm(log_sal ~ gender + dept + clin + cert + rank)$coef["gendermale"],
-      p = summary(lm(log_sal ~ gender + dept + clin + cert + rank))$coefficients["gendermale",4]
+      coef =  lm(log_sal ~ gender + dept + clin + cert + rank)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender + dept + clin + cert + rank))$coefficients["genderMale",4]
             )
 stratified_exper_noinflu %>% 
     knitr::kable()
@@ -306,8 +416,8 @@ stratified_rank_noinflu = df_sal_noinflu %>%
   group_by(rank) %>%
   summarize(
       n = n(),
-      coef =  lm(log_sal ~ gender + dept + clin + cert + exper)$coef["gendermale"],
-      p = summary(lm(log_sal ~ gender + dept + clin + cert + exper))$coefficients["gendermale",4]
+      coef =  lm(log_sal ~ gender + dept + clin + cert + exper)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender + dept + clin + cert + exper))$coefficients["genderMale",4]
             )
 stratified_rank_noinflu %>% 
     knitr::kable()
