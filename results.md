@@ -617,31 +617,497 @@ and 249 DF, p-value: \<
 
 ``` r
 fit_int = lm(log_sal ~gender+dept+clin+cert+exper+rank+gender*exper, data = df_sal)
-summary(fit_int)
+
+fit_int %>% broom::tidy() %>% kableExtra::kable()
 ```
 
-Call: lm(formula = log\_sal ~ gender + dept + clin + cert + exper + rank
-+ gender \* exper, data = df\_sal)
+<table>
 
-Residuals: Min 1Q Median 3Q Max -0.32130 -0.07860 -0.00987 0.07100
-0.86910
+<thead>
 
-Coefficients: Estimate Std. Error t value Pr(\>|t|)  
-(Intercept) 11.293666 0.041691 270.893 \< 2e-16 *** genderMale 0.128932
-0.036912 3.493 0.000566 *** deptPhysiology -0.165069 0.028755 -5.741
-2.75e-08 *** deptGenetics 0.189770 0.035827 5.297 2.60e-07 ***
-deptPediatrics 0.218603 0.035342 6.185 2.54e-09 *** deptMedicine
-0.546771 0.029045 18.825 \< 2e-16 *** deptSurgery 0.939830 0.034907
-26.924 \< 2e-16 *** clinResearch -0.208175 0.021470 -9.696 \< 2e-16 ***
-certNot certified -0.182166 0.020969 -8.688 5.09e-16 *** exper 0.027774
-0.003545 7.834 1.38e-13 *** rankAssociate 0.118231 0.023648 5.000
-1.09e-06 *** rankFull professor 0.208036 0.026112 7.967 5.90e-14 ***
-genderMale:exper -0.011728 0.003580 -3.276 0.001204 \*\* — Signif.
-codes: 0 ‘***’ 0.001 ’**’ 0.01 ’*’ 0.05 ‘.’ 0.1 ’ ’ 1
+<tr>
 
-Residual standard error: 0.1312 on 248 degrees of freedom Multiple
-R-squared: 0.9366, Adjusted R-squared: 0.9336 F-statistic: 305.4 on 12
-and 248 DF, p-value: \< 2.2e-16
+<th style="text-align:left;">
+
+term
+
+</th>
+
+<th style="text-align:right;">
+
+estimate
+
+</th>
+
+<th style="text-align:right;">
+
+std.error
+
+</th>
+
+<th style="text-align:right;">
+
+statistic
+
+</th>
+
+<th style="text-align:right;">
+
+p.value
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+(Intercept)
+
+</td>
+
+<td style="text-align:right;">
+
+11.2936657
+
+</td>
+
+<td style="text-align:right;">
+
+0.0416906
+
+</td>
+
+<td style="text-align:right;">
+
+270.892535
+
+</td>
+
+<td style="text-align:right;">
+
+0.0000000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+genderMale
+
+</td>
+
+<td style="text-align:right;">
+
+0.1289315
+
+</td>
+
+<td style="text-align:right;">
+
+0.0369123
+
+</td>
+
+<td style="text-align:right;">
+
+3.492917
+
+</td>
+
+<td style="text-align:right;">
+
+0.0005656
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+deptPhysiology
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.1650686
+
+</td>
+
+<td style="text-align:right;">
+
+0.0287549
+
+</td>
+
+<td style="text-align:right;">
+
+\-5.740539
+
+</td>
+
+<td style="text-align:right;">
+
+0.0000000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+deptGenetics
+
+</td>
+
+<td style="text-align:right;">
+
+0.1897699
+
+</td>
+
+<td style="text-align:right;">
+
+0.0358265
+
+</td>
+
+<td style="text-align:right;">
+
+5.296914
+
+</td>
+
+<td style="text-align:right;">
+
+0.0000003
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+deptPediatrics
+
+</td>
+
+<td style="text-align:right;">
+
+0.2186033
+
+</td>
+
+<td style="text-align:right;">
+
+0.0353421
+
+</td>
+
+<td style="text-align:right;">
+
+6.185348
+
+</td>
+
+<td style="text-align:right;">
+
+0.0000000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+deptMedicine
+
+</td>
+
+<td style="text-align:right;">
+
+0.5467712
+
+</td>
+
+<td style="text-align:right;">
+
+0.0290446
+
+</td>
+
+<td style="text-align:right;">
+
+18.825258
+
+</td>
+
+<td style="text-align:right;">
+
+0.0000000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+deptSurgery
+
+</td>
+
+<td style="text-align:right;">
+
+0.9398303
+
+</td>
+
+<td style="text-align:right;">
+
+0.0349067
+
+</td>
+
+<td style="text-align:right;">
+
+26.924103
+
+</td>
+
+<td style="text-align:right;">
+
+0.0000000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+clinResearch
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.2081748
+
+</td>
+
+<td style="text-align:right;">
+
+0.0214696
+
+</td>
+
+<td style="text-align:right;">
+
+\-9.696260
+
+</td>
+
+<td style="text-align:right;">
+
+0.0000000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+certNot certified
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.1821661
+
+</td>
+
+<td style="text-align:right;">
+
+0.0209685
+
+</td>
+
+<td style="text-align:right;">
+
+\-8.687594
+
+</td>
+
+<td style="text-align:right;">
+
+0.0000000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+exper
+
+</td>
+
+<td style="text-align:right;">
+
+0.0277735
+
+</td>
+
+<td style="text-align:right;">
+
+0.0035450
+
+</td>
+
+<td style="text-align:right;">
+
+7.834479
+
+</td>
+
+<td style="text-align:right;">
+
+0.0000000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+rankAssociate
+
+</td>
+
+<td style="text-align:right;">
+
+0.1182307
+
+</td>
+
+<td style="text-align:right;">
+
+0.0236483
+
+</td>
+
+<td style="text-align:right;">
+
+4.999550
+
+</td>
+
+<td style="text-align:right;">
+
+0.0000011
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+rankFull professor
+
+</td>
+
+<td style="text-align:right;">
+
+0.2080364
+
+</td>
+
+<td style="text-align:right;">
+
+0.0261120
+
+</td>
+
+<td style="text-align:right;">
+
+7.967070
+
+</td>
+
+<td style="text-align:right;">
+
+0.0000000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+genderMale:exper
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0117282
+
+</td>
+
+<td style="text-align:right;">
+
+0.0035803
+
+</td>
+
+<td style="text-align:right;">
+
+\-3.275776
+
+</td>
+
+<td style="text-align:right;">
+
+0.0012042
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 ``` r
 anova(fit_conf, fit_int)
@@ -655,25 +1121,6 @@ Res.Df RSS Df Sum of Sq F Pr(\>F)
 1 249 4.4506  
 2 248 4.2660 1 0.18458 10.731 0.001204 \*\* — Signif. codes: 0 ‘***’
 0.001 ’**’ 0.01 ’*’ 0.05 ‘.’ 0.1 ’ ’ 1
-
-``` r
-library(stargazer)
-```
-
-    ## 
-    ## Please cite as:
-
-    ##  Hlavac, Marek (2018). stargazer: Well-Formatted Regression and Summary Statistics Tables.
-
-    ##  R package version 5.2.2. https://CRAN.R-project.org/package=stargazer
-
-``` r
-stargazer(fit_int, title = "Results", align = TRUE)
-```
-
-% Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard
-University. E-mail: hlavac at fas.harvard.edu % Date and time: 日, 12 15,
-2019 - 16时43分45秒 % Requires LaTeX packages: dcolumn
 
 Interaction term \(gender*exper\) is significant, thus we may conside it
 in our model.
@@ -692,14 +1139,213 @@ stratified_dept %>%
     knitr::kable()
 ```
 
-| dept                           |  n |        coef |         p |
-| :----------------------------- | -: | ----------: | --------: |
-| Biochemistry/Molecular Biology | 50 | \-0.0187106 | 0.6600235 |
-| Physiology                     | 40 | \-0.0052950 | 0.9224663 |
-| Genetics                       | 21 |   0.0754572 | 0.2339215 |
-| Pediatrics                     | 30 |   0.0115277 | 0.8453661 |
-| Medicine                       | 80 |   0.0366927 | 0.3660339 |
-| Surgery                        | 40 |   0.0416427 | 0.4947262 |
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+dept
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+coef
+
+</th>
+
+<th style="text-align:right;">
+
+p
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+Biochemistry/Molecular Biology
+
+</td>
+
+<td style="text-align:right;">
+
+50
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0187106
+
+</td>
+
+<td style="text-align:right;">
+
+0.6600235
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Physiology
+
+</td>
+
+<td style="text-align:right;">
+
+40
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0052950
+
+</td>
+
+<td style="text-align:right;">
+
+0.9224663
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Genetics
+
+</td>
+
+<td style="text-align:right;">
+
+21
+
+</td>
+
+<td style="text-align:right;">
+
+0.0754572
+
+</td>
+
+<td style="text-align:right;">
+
+0.2339215
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Pediatrics
+
+</td>
+
+<td style="text-align:right;">
+
+30
+
+</td>
+
+<td style="text-align:right;">
+
+0.0115277
+
+</td>
+
+<td style="text-align:right;">
+
+0.8453661
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Medicine
+
+</td>
+
+<td style="text-align:right;">
+
+80
+
+</td>
+
+<td style="text-align:right;">
+
+0.0366927
+
+</td>
+
+<td style="text-align:right;">
+
+0.3660339
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Surgery
+
+</td>
+
+<td style="text-align:right;">
+
+40
+
+</td>
+
+<td style="text-align:right;">
+
+0.0416427
+
+</td>
+
+<td style="text-align:right;">
+
+0.4947262
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 ``` r
 stratified_clin = df_sal %>%
@@ -715,10 +1361,101 @@ stratified_clin %>%
     knitr::kable()
 ```
 
-| clin     |   n |      coef |         p |
-| :------- | --: | --------: | --------: |
-| Clinical | 160 | 0.0083165 | 0.7108663 |
-| Research | 101 | 0.0465115 | 0.2948187 |
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+clin
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+coef
+
+</th>
+
+<th style="text-align:right;">
+
+p
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+Clinical
+
+</td>
+
+<td style="text-align:right;">
+
+160
+
+</td>
+
+<td style="text-align:right;">
+
+0.0083165
+
+</td>
+
+<td style="text-align:right;">
+
+0.7108663
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Research
+
+</td>
+
+<td style="text-align:right;">
+
+101
+
+</td>
+
+<td style="text-align:right;">
+
+0.0465115
+
+</td>
+
+<td style="text-align:right;">
+
+0.2948187
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 ``` r
 stratified_cert = df_sal %>%
@@ -734,10 +1471,101 @@ stratified_cert %>%
     knitr::kable()
 ```
 
-| cert          |   n |      coef |         p |
-| :------------ | --: | --------: | --------: |
-| Certified     | 188 | 0.0126811 | 0.5584154 |
-| Not certified |  73 | 0.0265111 | 0.5547041 |
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+cert
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+coef
+
+</th>
+
+<th style="text-align:right;">
+
+p
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+Certified
+
+</td>
+
+<td style="text-align:right;">
+
+188
+
+</td>
+
+<td style="text-align:right;">
+
+0.0126811
+
+</td>
+
+<td style="text-align:right;">
+
+0.5584154
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Not certified
+
+</td>
+
+<td style="text-align:right;">
+
+73
+
+</td>
+
+<td style="text-align:right;">
+
+0.0265111
+
+</td>
+
+<td style="text-align:right;">
+
+0.5547041
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 ``` r
 stratified_rank = df_sal %>%
@@ -751,11 +1579,129 @@ stratified_rank %>%
     knitr::kable()
 ```
 
-| rank           |   n |        coef |         p |
-| :------------- | --: | ----------: | --------: |
-| Assistant      | 112 |   0.0826555 | 0.0213160 |
-| Associate      |  64 | \-0.0132771 | 0.6702516 |
-| Full professor |  85 | \-0.0404129 | 0.2680458 |
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+rank
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+coef
+
+</th>
+
+<th style="text-align:right;">
+
+p
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+Assistant
+
+</td>
+
+<td style="text-align:right;">
+
+112
+
+</td>
+
+<td style="text-align:right;">
+
+0.0826555
+
+</td>
+
+<td style="text-align:right;">
+
+0.0213160
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Associate
+
+</td>
+
+<td style="text-align:right;">
+
+64
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0132771
+
+</td>
+
+<td style="text-align:right;">
+
+0.6702516
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Full professor
+
+</td>
+
+<td style="text-align:right;">
+
+85
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0404129
+
+</td>
+
+<td style="text-align:right;">
+
+0.2680458
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 ``` r
 df_exper = df_sal %>%
@@ -780,12 +1726,157 @@ stratified_exper %>%
     knitr::kable()
 ```
 
-| exper |  n |        coef |         p |
-| :---- | -: | ----------: | --------: |
-| 0     | 64 |   0.1257741 | 0.0238410 |
-| 1     | 57 |   0.0340942 | 0.2757676 |
-| 2     | 74 | \-0.0005508 | 0.9876466 |
-| 3     | 66 | \-0.0034961 | 0.9439975 |
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+exper
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+coef
+
+</th>
+
+<th style="text-align:right;">
+
+p
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+64
+
+</td>
+
+<td style="text-align:right;">
+
+0.1257741
+
+</td>
+
+<td style="text-align:right;">
+
+0.0238410
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+57
+
+</td>
+
+<td style="text-align:right;">
+
+0.0340942
+
+</td>
+
+<td style="text-align:right;">
+
+0.2757676
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+74
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0005508
+
+</td>
+
+<td style="text-align:right;">
+
+0.9876466
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+66
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0034961
+
+</td>
+
+<td style="text-align:right;">
+
+0.9439975
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 ``` r
 df_exper  %>%
@@ -947,12 +2038,157 @@ stratified_exper_noinflu %>%
     knitr::kable()
 ```
 
-| exper |  n |        coef |         p |
-| :---- | -: | ----------: | --------: |
-| 0     | 63 |   0.0577437 | 0.2066119 |
-| 1     | 57 |   0.0340942 | 0.2757676 |
-| 2     | 74 | \-0.0005508 | 0.9876466 |
-| 3     | 66 | \-0.0034961 | 0.9439975 |
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+exper
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+coef
+
+</th>
+
+<th style="text-align:right;">
+
+p
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+63
+
+</td>
+
+<td style="text-align:right;">
+
+0.0577437
+
+</td>
+
+<td style="text-align:right;">
+
+0.2066119
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+57
+
+</td>
+
+<td style="text-align:right;">
+
+0.0340942
+
+</td>
+
+<td style="text-align:right;">
+
+0.2757676
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+74
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0005508
+
+</td>
+
+<td style="text-align:right;">
+
+0.9876466
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+66
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0034961
+
+</td>
+
+<td style="text-align:right;">
+
+0.9439975
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 ``` r
 stratified_rank_noinflu = df_sal_noinflu %>%
@@ -966,11 +2202,129 @@ stratified_rank_noinflu %>%
     knitr::kable()
 ```
 
-| rank           |   n |        coef |         p |
-| :------------- | --: | ----------: | --------: |
-| Assistant      | 111 |   0.0390298 | 0.2009195 |
-| Associate      |  64 | \-0.0132771 | 0.6702516 |
-| Full professor |  85 | \-0.0404129 | 0.2680458 |
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+rank
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+coef
+
+</th>
+
+<th style="text-align:right;">
+
+p
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+Assistant
+
+</td>
+
+<td style="text-align:right;">
+
+111
+
+</td>
+
+<td style="text-align:right;">
+
+0.0390298
+
+</td>
+
+<td style="text-align:right;">
+
+0.2009195
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Associate
+
+</td>
+
+<td style="text-align:right;">
+
+64
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0132771
+
+</td>
+
+<td style="text-align:right;">
+
+0.6702516
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Full professor
+
+</td>
+
+<td style="text-align:right;">
+
+85
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0404129
+
+</td>
+
+<td style="text-align:right;">
+
+0.2680458
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 Not significant now, -184 usinf main effects model or -216, -184, -8
 using interaction model.

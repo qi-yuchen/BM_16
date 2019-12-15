@@ -1,0 +1,225 @@
+---
+title: "model output"
+author: "xj2249"
+date: "12/15/2019"
+output:
+    pdf_document:
+        latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(faraway)
+library(broom)
+library(dplyr)
+library(HH)
+library(leaps)
+library(caret)
+library(purrr)
+library(DataExplorer)
+library(broom)
+library(arsenal)
+library(ggpubr)
+library(stargazer)
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom") + theme(plot.title = element_text(hjust = 0.5)))
+
+```
+
+# Data cleaning
+
+```{r}
+# import
+df = read_csv("Lawsuit.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(dept = factor(dept, levels = c(1:6), labels = c("Biochemistry/Molecular Biology", "Physiology ", "Genetics", "Pediatrics", "Medicine", "Surgery")),
+         gender = factor(gender, levels = c(0, 1), labels = c("Female","Male")),
+         clin = factor(clin, levels = c(1, 0), labels = c("Clinical","Research")),
+         cert = factor(cert, levels = c(1, 0), labels = c("Certified","Not certified")),
+         rank = factor(rank, levels = c(1, 2, 3), labels = c("Assistant", "Associate", "Full professor")),
+         sal = (sal94 + sal95)/2) 
+
+# consider log mean sal only 
+df_sal = df %>%   
+  mutate(log_sal = log(sal)) %>% 
+  dplyr::select(-sal95, -id, -sal94, -sal)
+```
+## interaction term (not sure whether to test)
+
+```{r results='asis'}
+## general test 
+
+# no prate
+fit_conf = lm(log_sal ~gender+dept+clin+cert+exper+rank, data = df_sal)
+summary(fit_conf)
+
+fit_int = lm(log_sal ~gender+dept+clin+cert+exper+rank+gender*exper, data = df_sal)
+
+```
+
+Interaction term $gender*exper$ is significant, thus we may conside it in our model.
+
+
+## stratified regression
+
+```{r}
+stratified_dept = df_sal %>%
+  group_by(dept) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal ~ gender+clin+cert+exper+rank)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender+clin+cert+exper+rank))$coefficients["genderMale",4]
+            )
+stratified_dept %>% 
+    knitr::kable()
+
+stratified_clin = df_sal %>%
+  group_by(clin) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal ~ gender + dept + cert + exper + 
+    rank)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender + dept + cert + exper + 
+    rank))$coefficients["genderMale",4]
+            )
+stratified_clin %>% 
+    knitr::kable()
+
+stratified_cert = df_sal %>%
+  group_by(cert) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal ~ gender + dept + clin + exper + 
+    rank)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender + dept + clin + exper + 
+    rank))$coefficients["genderMale",4]
+            )
+stratified_cert %>% 
+    knitr::kable()
+
+stratified_rank = df_sal %>%
+  group_by(rank) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal ~ gender + dept + clin + cert + exper)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender + dept + clin + cert + exper))$coefficients["genderMale",4]
+            )
+stratified_rank %>% 
+    knitr::kable()
+```
+
+
+```{r}
+df_exper = df_sal %>%
+  mutate(exper_fct = case_when(
+      exper < 6 ~ "0",
+      exper >= 6 & exper < 9 ~ "1",
+      exper >= 9 & exper < 14 ~ "2",
+      exper >= 14 ~ "3",
+      TRUE ~ ""
+  )) %>% 
+    mutate(exper = factor(exper_fct)) %>% 
+    dplyr::select(-exper_fct)
+
+stratified_exper = df_exper %>%
+  group_by(exper) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal ~ gender + dept + clin + cert + rank)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender + dept + clin + cert + rank))$coefficients["genderMale",4]
+            )
+stratified_exper %>% 
+    knitr::kable()
+
+df_exper  %>%
+  group_by(exper, rank) %>%
+  summarize(
+      n = n())
+```
+
+
+
+# Model diagnostics
+
+```{r}
+final_model = lm(log_sal ~gender+dept+clin+cert+exper+rank, data = df_sal)
+par(mfrow = c(2,2))
+plot(final_model)
+```
+
+# Outliers/influential points
+
+```{r}
+stu_res<-rstandard(final_model)
+stu_res[abs(stu_res)>2.5]
+
+influence.measures(final_model) %>% 
+  summary()
+
+df[184,]
+```
+
+Using studentized residuals, id 184 is an outlier in Y. using leverage values, 19 and 216 are outliers in X. Using DFFIT, 8, 184 and 216 are influential points. Using main effects only, 184 is influential.
+
+```{r}
+# consider the data without influential points
+df_sal_noinflu = df_sal[-184, ]
+
+par(mfrow = c(2,2))
+plot(final_model)
+temp = lm(log_sal ~gender+dept+clin+cert+exper+gender*rank+gender*exper, data = df_sal_noinflu)
+summary(temp)
+
+df_exper_noinflu = df_sal_noinflu %>%
+  mutate(exper_fct = case_when(
+      exper < 6 ~ "0",
+      exper >= 6 & exper < 9 ~ "1",
+      exper >= 9 & exper < 14 ~ "2",
+      exper >= 14 ~ "3",
+      TRUE ~ ""
+  )) %>% 
+    mutate(exper = factor(exper_fct)) %>% 
+    dplyr::select(-exper_fct)
+
+stratified_exper_noinflu = df_exper_noinflu %>%
+  group_by(exper) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal ~ gender + dept + clin + cert + rank)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender + dept + clin + cert + rank))$coefficients["genderMale",4]
+            )
+stratified_exper_noinflu %>% 
+    knitr::kable()
+
+stratified_rank_noinflu = df_sal_noinflu %>%
+  group_by(rank) %>%
+  summarize(
+      n = n(),
+      coef =  lm(log_sal ~ gender + dept + clin + cert + exper)$coef["genderMale"],
+      p = summary(lm(log_sal ~ gender + dept + clin + cert + exper))$coefficients["genderMale",4]
+            )
+stratified_rank_noinflu %>% 
+    knitr::kable()
+```
+
+Not significant now, -184 usinf main effects model or -216, -184, -8 using interaction model.
+
+### model output 
+```{r results='asis'}
+stargazer(fit_int,temp, title ="",
+          dep.var.labels = c("Log Salary"),
+          column.labels   = c("Final model", "Final model without 184"), 
+          covariate.labels = c("Male","Physiology","Genetics","Pediatrics","Medicine", "Surgery",
+                             "Research emphasis","Not board certified","Experience","Associate", 
+                             "Full professor","Male:Associate","Male:Full professor","Male:Experience")
+          )
+```
+

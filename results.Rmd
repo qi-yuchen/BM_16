@@ -272,7 +272,8 @@ fit_conf = lm(log_sal ~gender+dept+clin+cert+exper+rank, data = df_sal)
 summary(fit_conf)
 
 fit_int = lm(log_sal ~gender+dept+clin+cert+exper+rank+gender*exper, data = df_sal)
-summary(fit_int)
+
+fit_int %>% broom::tidy() %>% kableExtra::kable()
 
 anova(fit_conf, fit_int)
 
