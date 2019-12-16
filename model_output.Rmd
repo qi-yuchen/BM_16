@@ -214,8 +214,8 @@ Not significant now, -184 usinf main effects model or -216, -184, -8 using inter
 
 ### model output 
 ```{r results='asis'}
-stargazer(fit_int,temp, title ="",
-          dep.var.labels = c("Log Salary"),
+stargazer(fit_int,temp, title = "",
+          dep.var.labels = c("Dependent variable: Log Salary"),
           column.labels   = c("Final model", "Final model without 184"), 
           covariate.labels = c("Male","Physiology","Genetics","Pediatrics","Medicine", "Surgery",
                              "Research emphasis","Not board certified","Experience","Associate", 

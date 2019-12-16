@@ -143,7 +143,9 @@ dept_plot <-
     df_sal %>% 
     ggplot(aes(y = log_sal,x = dept, fill = gender)) + 
     geom_boxplot() + 
-    labs(x = "Department",y = "")
+    labs(x = "Department",y = "") +
+    scale_x_discrete(labels = c("Bio","Phy","Gene","Ped","Med","Sur"))
+
 
 clin_plot <- 
     df_sal %>% 
