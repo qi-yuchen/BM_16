@@ -272,7 +272,7 @@ So is using criteria. If force in gender, the best is without prate. clin and ex
 fit_conf = lm(log_sal ~gender+dept+clin+cert+exper+rank, data = df_sal)
 summary(fit_conf)
 
-fit_int = lm(log_sal ~gender+dept+clin+cert+exper+rank+gender*exper, data = df_sal)
+fit_int = lm(log_sal ~gender+dept+clin+cert+exper+gender*rank+gender*exper, data = df_sal)
 
 fit_int %>% broom::tidy() %>% kableExtra::kable()
 
