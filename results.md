@@ -40,7 +40,7 @@ df_sal = df %>%
 
 # Data exploration
 
-## distribution of the outcome
+## Distribution of the outcome and consider transformation
 
 ``` r
 hist_ave <-
@@ -82,7 +82,7 @@ ggarrange(hist_ave,hist_trans,qq_ave,qq_trans) %>%
 From the distribution of average salary we applied log transformation to
 the response variable.
 
-## table1(covariates and outcome by gender)
+## Table1(covariates and outcome by gender)
 
 ``` r
 # descriptive statistics for variables of interest
@@ -134,9 +134,9 @@ write2pdf(tab1, "table1.pdf")
     ## 
     ## Output created: table1.pdf
 
-## visualizing the relationship between response variable and predictor variables by gender
+## Visualizing the relationship between response variable and predictor variables by gender
 
-categorical
+### categorical
 
 ``` r
 dept_plot <- 
@@ -172,7 +172,7 @@ gender_plot <-
     labs(x = "Gender",y = "")
 ```
 
-continuous
+### continuous
 
 ``` r
 prate_plot <-
@@ -1913,10 +1913,16 @@ plot(final_model)
 
 <img src="results_files/figure-gfm/unnamed-chunk-13-1.png" width="90%" />
 
+``` r
+plot(fit_int)
+```
+
+<img src="results_files/figure-gfm/unnamed-chunk-13-2.png" width="90%" />
+
 # Outliers/influential points
 
 ``` r
-stu_res<-rstandard(final_model)
+stu_res <- rstandard(final_model)
 stu_res[abs(stu_res)>2.5]
 ```
 
@@ -2330,3 +2336,19 @@ Full professor
 
 Not significant now, -184 usinf main effects model or -216, -184, -8
 using interaction model.
+
+# Model output
+
+``` r
+stargazer(final_model,fit_int,temp, title = "",
+          dep.var.labels = c("Log Salary"),
+          column.labels   = c("Main effect model","Final model with interaction", "Final model without 184"), 
+          covariate.labels = c("Male","Physiology","Genetics","Pediatrics","Medicine", "Surgery",
+                             "Research emphasis","Not board certified","Experience","Associate", 
+                             "Full professor","Male:Associate","Male:Full professor","Male:Experience")
+          )
+```
+
+% Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard
+University. E-mail: hlavac at fas.harvard.edu % Date and time: 一, 12 16,
+2019 - 13时52分27秒
