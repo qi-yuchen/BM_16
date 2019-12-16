@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.999991 (TeX Live 2019) (preloaded format=xelatex 2019.10.25)  15 DEC 2019 18:57
+This is XeTeX, Version 3.14159265-2.6-0.999991 (TeX Live 2019) (preloaded format=xelatex 2019.10.25)  16 DEC 2019 13:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -789,10 +789,15 @@ pdf)
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
 (hyperref)                than one, level fixed on input line 597.
 
-Missing character: There is no 日 in font [lmroman10-regular]:mapping=tex-text;!
+Missing character: There is no 一 in font [lmroman10-regular]:mapping=tex-text;!
 Missing character: There is no 时 in font [lmroman10-regular]:mapping=tex-text;!
 Missing character: There is no 分 in font [lmroman10-regular]:mapping=tex-text;!
 Missing character: There is no 秒 in font [lmroman10-regular]:mapping=tex-text;!
+
+Overfull \hbox (20.95837pt too wide) in paragraph at lines 618--682
+ [][] 
+ []
+
 
 LaTeX Warning: Float too large for page by 63.02399pt on input line 682.
 
@@ -808,7 +813,7 @@ Package rerunfilecheck Info: File `model_output.out' has not changed.
 Here is how much of TeX's memory you used:
  23304 strings out of 494894
  438809 string characters out of 6176292
- 540910 words of memory out of 5000000
+ 543910 words of memory out of 5000000
  27042 multiletter control sequences out of 15000+600000
  545057 words of font info for 54 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191

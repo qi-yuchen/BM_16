@@ -61,7 +61,7 @@ df_sal = df %>%
 fit_conf = lm(log_sal ~gender+dept+clin+cert+exper+rank, data = df_sal)
 summary(fit_conf)
 
-fit_int = lm(log_sal ~gender+dept+clin+cert+exper+rank+gender*exper, data = df_sal)
+fit_int = lm(log_sal ~gender+dept+clin+cert+exper+ gender*rank +gender*exper, data = df_sal)
 
 ```
 
@@ -214,9 +214,9 @@ Not significant now, -184 usinf main effects model or -216, -184, -8 using inter
 
 ### model output 
 ```{r results='asis'}
-stargazer(fit_int,temp, title = "",
-          dep.var.labels = c("Dependent variable: Log Salary"),
-          column.labels   = c("Final model", "Final model without 184"), 
+stargazer(final_model,fit_int,temp, title = "",
+          dep.var.labels = c("Log Salary"),
+          column.labels   = c("Main effect model","Final model with interaction", "Final model without 184"), 
           covariate.labels = c("Male","Physiology","Genetics","Pediatrics","Medicine", "Surgery",
                              "Research emphasis","Not board certified","Experience","Associate", 
                              "Full professor","Male:Associate","Male:Full professor","Male:Experience")
